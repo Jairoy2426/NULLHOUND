@@ -1,20 +1,27 @@
 # 🛡️ NULLHOUND (Automated Enumeration & Guided Intelligence Scanner)
 
+[![Python](https://img.shields.io/badge/Python-3.8%2B-blue.svg)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Platform: Linux](https://img.shields.io/badge/Platform-Linux-lightgrey.svg)](https://www.kernel.org/)
+
 > [!NOTE]
-> **Strictly for Educational Purposes** — Developed as a cybersecurity portfolio demonstration.  
-> **Author / Developer**: Made By Hercules
+> **Cybersecurity Portfolio Project** — Developed by Jai Roy (Hercules) as a modern security auditing and enumeration showcase.  
+> **Author / Developer**: [Jai Roy (Hercules)](https://github.com/Jairoy2426)
 
 **NULLHOUND** is a professional, terminal-only Linux vulnerability scanner and security configuration auditor written in Python. It is designed to perform localized checks covering system configurations, network exposures, filesystem permissions, user access patterns, kernel settings, and running services against hardening standards like the CIS Benchmarks.
+
+### 💡 Why I Built This
+I built **NULLHOUND** to address the need for a fast, parallelized, and human-readable security auditor for Linux systems. While tools like Lynis are fantastic, I wanted to create an object-oriented Python implementation that outputs rich, beautiful terminal interfaces and modern HTML reports, making security posture assessments both comprehensive and visually accessible.
 
 ---
 
 ## 📸 Screenshots
 
 ### Interactive Terminal Audit Interface
-![Interactive Terminal Audit](https://img.herculesdev.in/u/JzLy2R.png)
+![Interactive Terminal Audit](docs/screenshots/terminal_audit.png)
 
 ### Self-Contained HTML Security Report Dashboard
-![HTML Security Report Dashboard](https://img.herculesdev.in/u/3i0b0d.png)
+![HTML Security Report Dashboard](docs/screenshots/html_report.png)
 
 ---
 
@@ -30,10 +37,23 @@
 
 ## 🛠️ Installation & Setup
 
+### Option 1: Package Installation (Recommended)
+You can install NULLHOUND as a local package, which automatically links the `nullhound` binary to your path:
+```bash
+git clone https://github.com/Jairoy2426/NULLHOUND.git
+cd NULLHOUND
+pip3 install .
+```
+Once installed, execute the tool from anywhere:
+```bash
+sudo nullhound
+```
+
+### Option 2: Standalone Execution
 1.  **Clone or Copy** the repository onto your target Linux host:
     ```bash
     git clone https://github.com/Jairoy2426/NULLHOUND.git
-    cd nullhound
+    cd NULLHOUND
     ```
 
 2.  **Install dependencies** using pip:
