@@ -147,3 +147,9 @@ NULLHOUND is built with modularity at its core. To add a new scanning module:
 
 > [!WARNING]
 > This security auditing tool is created for educational, ethical hacking, and portfolio demonstration purposes only. Running security auditing tools against systems you do not own or do not have explicit written permission to audit is illegal and subject to criminal liability. The authors assume no liability for misuse of this tool.
+
+---
+
+## 📄 License
+
+This project is licensed under the [MIT License](LICENSE).
