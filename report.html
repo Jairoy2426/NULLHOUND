@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NULLHOUND Vulnerability Scan Report</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --container-bg: #1e293b;
+            --text-color: #f8fafc;
+            --text-dim: #94a3b8;
+            --border-color: #334155;
+            
+            --critical: #ef4444;
+            --high: #f97316;
+            --medium: #eab308;
+            --low: #06b6d4;
+            --info: #64748b;
+            --pass: #22c55e;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        header {
+            background-color: var(--container-bg);
+            padding: 30px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 25px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+
+        h1 {
+            margin-top: 0;
+            font-size: 2.5rem;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            letter-spacing: 0.05em;
+        }
+
+        .subtitle {
+            color: var(--text-dim);
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+        }
+
+        .meta-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 20px;
+        }
+
+        .meta-item strong {
+            color: var(--text-dim);
+            display: block;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+        }
+
+        .meta-item span {
+            font-size: 1.05rem;
+            font-weight: 500;
+        }
+
+        /* Dashboard widgets */
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+        }
+
+        .card {
+            background-color: var(--container-bg);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            padding: 25px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+            height: 100%;
+            align-items: center;
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+        }
+
+        .stat-box {
+            text-align: center;
+            padding: 15px 5px;
+            border-radius: 8px;
+            background-color: #0f172a90;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-count {
+            font-size: 2rem;
+            font-weight: 700;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-dim);
+            text-transform: uppercase;
+        }
+
+        .risk-gauge {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .risk-score {
+            font-size: 4rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .risk-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-top: 10px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* Findings list */
+        .findings-section {
+            margin-top: 30px;
+        }
+
+        .findings-title {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .finding-card {
+            background-color: var(--container-bg);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 15px;
+            padding: 20px;
+            border-left: 6px solid var(--text-dim);
+        }
+
+        .border-critical { border-left-color: var(--critical); }
+        .border-high { border-left-color: var(--high); }
+        .border-medium { border-left-color: var(--medium); }
+        .border-low { border-left-color: var(--low); }
+        .border-info { border-left-color: var(--info); }
+
+        .finding-header {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #ffffff;
+        }
+
+        .badge-critical { background-color: var(--critical); }
+        .badge-high { background-color: var(--high); }
+        .badge-medium { background-color: var(--medium); color: #000; }
+        .badge-low { background-color: var(--low); color: #000; }
+        .badge-info { background-color: var(--info); }
+        .badge-compliance { background-color: #2563eb; color: #ffffff; }
+
+        .finding-id {
+            font-family: monospace;
+            font-weight: bold;
+            color: var(--text-dim);
+        }
+
+        .finding-title {
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: #ffffff;
+            flex-grow: 1;
+        }
+
+        .finding-module {
+            font-size: 0.75rem;
+            background-color: #0f172a;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            border: 1px solid var(--border-color);
+        }
+
+        .finding-details {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #334155a0;
+        }
+
+        .code-block {
+            margin: 15px 0;
+        }
+
+        .code-block pre {
+            background-color: #090d16;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            border: 1px solid var(--border-color);
+            margin-top: 5px;
+        }
+
+        .code-block code {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9rem;
+            color: #38bdf8;
+        }
+
+        .remediation {
+            background-color: #1e293b;
+            border-left: 4px solid var(--pass);
+            padding: 10px 15px;
+            margin: 15px 0;
+            border-radius: 0 6px 6px 0;
+        }
+
+        a {
+            color: #38bdf8;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .no-vulns {
+            text-align: center;
+            font-size: 1.3rem;
+            padding: 50px;
+            background-color: var(--container-bg);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🛡️ NULLHOUND SECURITY REPORT</h1>
+            <div class="subtitle">Automated Enumeration & Guided Intelligence Scanner</div>
+            <div class="meta-grid">
+                <div class="meta-item">
+                    <strong>Host Name</strong>
+                    <span>kali</span>
+                </div>
+                <div class="meta-item">
+                    <strong>Kernel</strong>
+                    <span>Linux 6.19.14+kali-amd64</span>
+                </div>
+                <div class="meta-item">
+                    <strong>Scan Time</strong>
+                    <span>2026-06-28 13:45:27 IST</span>
+                </div>
+                <div class="meta-item">
+                    <strong>Scanner Version</strong>
+                    <span>1.0.0</span>
+                </div>
+                <div class="meta-item">
+                    <strong>Audit User</strong>
+                    <span>hercules</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="dashboard">
+            <div class="card">
+                <div class="stats-grid">
+                    <div class="stat-box" style="border-top: 4px solid var(--critical)">
+                        <span class="stat-count" style="color: var(--critical)">1</span>
+                        <span class="stat-label">Critical</span>
+                    </div>
+                    <div class="stat-box" style="border-top: 4px solid var(--high)">
+                        <span class="stat-count" style="color: var(--high)">4</span>
+                        <span class="stat-label">High</span>
+                    </div>
+                    <div class="stat-box" style="border-top: 4px solid var(--medium)">
+                        <span class="stat-count" style="color: var(--medium)">20</span>
+                        <span class="stat-label">Medium</span>
+                    </div>
+                    <div class="stat-box" style="border-top: 4px solid var(--low)">
+                        <span class="stat-count" style="color: var(--low)">7</span>
+                        <span class="stat-label">Low</span>
+                    </div>
+                    <div class="stat-box" style="border-top: 4px solid var(--info)">
+                        <span class="stat-count" style="color: var(--info)">0</span>
+                        <span class="stat-label">Info</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card risk-gauge">
+                <span class="risk-score" style="color: #ef4444">100</span>
+                <span class="risk-title">OVERALL RISK SCORE</span>
+            </div>
+
+            <div class="card risk-gauge">
+                <span class="risk-score" style="color: #ef4444">0</span>
+                <span class="risk-title">HARDENING INDEX</span>
+            </div>
+        </div>
+
+        <div class="findings-section">
+            <div class="findings-title">
+                <span>Vulnerabilities & Findings (32)</span>
+            </div>
+            
+            <div class="finding-card border-medium">
+                <summary class="finding-header">
+                    <span class="badge badge-medium">MEDIUM</span>
+                    <span class="badge badge-compliance">PCI-DSS v4.0 2.2.4</span><span class="badge badge-compliance">ISO27001:2022 A.8.12</span><span class="badge badge-compliance">CIS-Control 5.3</span>
+                    <span class="finding-id">AEG-USR-006</span>
+                    <span class="finding-title">System account 'postgres' has interactive login shell</span>
+                    <span class="finding-module">USERS</span>
+                </summary>
+                <div class="finding-details">
+                    <p><strong>Description:</strong> The system account 'postgres' (UID 113) is configured with an active login shell (/bin/bash). System accounts should be locked and prevented from logging in directly.</p>
+                    <div class="code-block">
+                        <strong>Evidence:</strong>
+                        <pre><code>User: postgres, Shell: /bin/bash</code></pre>
+                    </div>
+                    <p class="remediation"><strong>Remediation:</strong> Change the user shell to a non-interactive shell: usermod -s /usr/sbin/nologin postgres</p>
+                    <p><strong>References:</strong> <a href="https://www.cisecurity.org/benchmark/ubuntu_linux" target="_blank">https://www.cisecurity.org/benchmark/ubuntu_linux</a> </p>
+                </div>
+            </div>
+            
+
+            <div class="finding-card border-medium">
+                <summary class="finding-header">
+                    <span class="badge badge-medium">MEDIUM</span>
+                    
+                    <span class="finding-id">AEG-SRV-003</span>
+                    <span class="finding-title">Process 'xfce4-session' running from deleted binary</span>
+                    <span class="finding-module">SERVICES</span>
+                </summary>
+                <div class="finding-details">
+                    <p><strong>Description:</strong> The process 'xfce4-session' (PID 1174) is executing from a binary that has been deleted from the filesystem (/usr/bin/xfce4-session (deleted)). While common during system upgrades before services are restarted, this is also a classic technique used by attackers to hide malware.</p>
+                    <div class="code-block">
+                        <strong>Evidence:</strong>
+                        <pre><code>PID: 1174, Command: xfce4-session, Path: /usr/bin/xfce4-session (deleted)</code></pre>
+                    </div>
+                    <p class="remediation"><strong>Remediation:</strong> Restart the affected service: systemctl restart xfce4-session (or kill PID 1174 if unauthorized).</p>
+                    <p><strong>References:</strong> <a href="https://attack.mitre.org/techniques/T1070/004/" target="_blank">https://attack.mitre.org/techniques/T1070/004/</a> </p>
+                </div>
+            </div>
+            
+
+            <div class="finding-card border-medium">
+                <summary class="finding-header">
+                    <span class="badge badge-medium">MEDIUM</span>
+                    
+                    <span class="finding-id">AEG-SRV-003</span>
+                    <span class="finding-title">Process 'VBoxClient' running from deleted binary</span>
+                    <span class="finding-module">SERVICES</span>
+                </summary>
+                <div class="finding-details">
+                    <p><strong>Description:</strong> The process 'VBoxClient' (PID 1255) is executing from a binary that has been deleted from the filesystem (/usr/bin/VBoxClient (deleted)). While common during system upgrades before services are restarted, this is also a classic technique used by attackers to hide malware.</p>
+                    <div class="code-block">
+                        <strong>Evidence:</strong>
+                        <pre><code>PID: 1255, Command: VBoxClient, Path: /usr/bin/VBoxClient (deleted)</code></pre>
+                    </div>
+                    <p class="remediation"><strong>Remediation:</strong> Restart the affected service: systemctl restart VBoxClient (or kill PID 1255 if unauthorized).</p>
+                    <p><strong>References:</strong> <a href="https://attack.mitre.org/techniques/T1070/004/" target="_blank">https://attack.mitre.org/techniques/T1070/004/</a> </p>
+                </div>
+            </div>
+            
+
+            <div class="finding-card border-medium">
+                <summary class="finding-header">
+                    <span class="badge badge-medium">MEDIUM</span>
+                    
+                    <span class="finding-id">AEG-SRV-003</span>
+                    <span class="finding-title">Process 'VBoxClient' running from deleted binary</span>
+                    <span class="finding-module">SERVICES</span>
+                </summary>
+                <div class="finding-details">
+                    <p><strong>Description:</strong> The process 'VBoxClient' (PID 1256) is executing from a binary that has been deleted from the filesystem (/usr/bin/VBoxClient (deleted)). While common during system upgrades before services are restarted, this is also a classic technique used by attackers to hide malware.</p>
+                    <div class="code-block">
+                        <strong>Evidence:</strong>
+                        <pre><code>PID: 1256, Command: VBoxClient, Path: /usr/bin/VBoxClient (deleted)</code></pre>
+                    </div>
+                    <p class="remediation"><strong>Remediation:</strong> Restart the affected service: systemctl restart VBoxClient (or kill PID 1256 if unauthorized).</p>
+                    <p><strong>References:</strong> <a href="https://attack.mitre.org/techniques/T1070/004/" target="_blank">https://attack.mitre.org/techniques/T1070/004/</a> </p>
+                </div>
+            </div>
+            
+
+            <div class="finding-card border-medium">
+                <summary class="finding-header">
+                    <span class="badge badge-medium">MEDIUM</span>
+                    
+                    <span class="finding-id">AEG-SRV-003</span>
+                    <span class="finding-title">Process 'VBoxClient' running from deleted binary</span>
+                    <span class="finding-module">SERVICES</span>
+                </summary>
+                <div class="finding-details">
+                    <p><strong>Description:</strong> The process 'VBoxClient' (PID 1262) is executing from a binary that has been deleted from the filesystem (/usr/bin/VBoxClient (deleted)). While common during system upgrades before services are restarted, this is also a classic technique used by attackers to hide malware.</p>
+                    <div class="code-block">
+                        <strong>Evidence:</strong>
+                        <pre><code>PID: 1262, Command: VBoxClient, Path: /usr/bin/VBoxClient (deleted)</code></pre>
+                    </div>
+                    <p class="remediation"><strong>Remediation:</strong> Restart the affected service: systemctl restart VBoxClient (or kill PID 1262 if unauthorized).</p>
+                    <p><strong>References:</strong> <a href="https://attack.mitre.org/techniques/T1070/004/" target="_blank">https://attack.mitre.org/techniques/T1070/004/</a> </p>
+                </div>
+            </div>
+            
+
+            <div class="finding-card border-medium">
+                <summary class="finding-header">
+                    <span class="badge badge-medium">MEDIUM</span>
+                    
+                    <span class="finding-id">AEG-SRV-003</span>
+                    <span class="finding-title">Process 'VBoxClient' running from deleted binary</span>
+                    <span class="finding-module">SERVICES</span>
+                </summary>
+                <div class="finding-details">
+                    <p><strong>Description:</strong> The process 'VBoxClient' (PID 1264) is executing from a binary that has been deleted from the filesystem (/usr/bin/VBoxClient (deleted)). While common during system upgrades before services are restarted, this is also a classic technique used by attackers to hide malware.</p>
+                    <div class="code-block">
+                        <strong>Evidence:</strong>
+                        <pre><code>PID: 1264, Command: VBoxClient, Path: /usr/bin/VBoxClient (deleted)</code></pre>
+                    </div>
+                    <p class="remediation"><strong>Remediation:</strong> Restart the affected service: systemctl restart VBoxClient (or kill PID 1264 if unauthorized).</p>
+                    <p><strong>References:</strong> <a href="https://attack.mitre.org/techniques/T1070/004/" target="_blank">https://attack.mitre.org/techniques/T1070/004/</a> </p>
+                </div>
+            </div>
+            
+
+            <div class="finding-card border-medium">
+                <summary class="finding-header">
+                    <span class="badge badge-medium">MEDIUM</span>
+                    
+                    <span class="finding-id">AEG-SRV-003</span>
+                    <span class="finding-title">Process 'VBoxClient' running from deleted binary</span>
+                    <span class="finding-module">SERVICES</span>
+                </summary>
+                <div class="finding-details">
+                    <p><strong>Description:</strong> The process 'VBoxClient' (PID 1270) is executing from a binary that has been deleted from the filesystem (/usr/bin/VBoxClient (deleted)). While common during system upgrades before services are restarted, this is also a classic technique used by attackers to hide malware.</p>
+                    <div class="code-block">
+                        <strong>Evidence:</strong>
+                        <pre><code>PID: 1270, Command: VBoxClient, Path: /usr/bin/VBoxClient (deleted)</code></pre>
+                    </div>
+                    <p class="remediation"><strong>Remediation:</strong> Restart the affected service: systemctl restart VBoxClient (or kill PID 1270 if unauthorized).</p>
+                    <p><strong>References:</strong> <a href="https://attack.mitre.org/techniques/T1070/004/" target="_blank">https://attack.mitre.org/techniques/T1070/004/</a> </p>
+                </div>
+            </div>
+            
+
+            <div class="finding-card border-medium">
+                <summary class="finding-header">
+                    <span class="badge badge-medium">MEDIUM</span>
+                    
+                    <span class="finding-id">AEG-SRV-003</span>
+                    <span class="finding-title">Process 'VBoxClient' running from deleted binary</span>
+                    <span class="finding-module">SERVICES</span>
+                </summary>
+                <div class="finding-details">
+                    <p><strong>Description:</strong> The process 'VBoxClient' (PID 1272) is executing from a binary that has been deleted from the filesystem (/usr/bin/VBoxClient (deleted)). While common during system upgrades before services are restarted, this is also a classic technique used by attackers to hide malware.</p>
+                    <div class="code-block">
+                        <strong>Evidence:</strong>
+                        <pre><code>PID: 1272, Command: VBoxClient, Path: /usr/bin/VBoxClient (deleted)</code></pre>
+                    </div>
+                    <p class="remediation"><strong>Remediation:</strong> Restart the affected service: systemctl restart VBoxClient (or kill PID 1272 if unauthorized).</p>
+                    <p><strong>References:</strong> <a href="https://attack.mitre.org/techniques/T1070/004/" target="_blank">https://attack.mitre.org/techniques/T1070/004/</a> </p>
+                </div>
+            </div>
+            
+
+            <div class="finding-card border-medium">
+                <summary class="finding-header">
+                    <span class="badge badge-medium">MEDIUM</span>
+                    
+                    <span class="finding-id">AEG-SRV-003</span>
+                    <span class="finding-title">Process 'VBoxClient' running from deleted binary</span>
+                    <span class="finding-module">SERVICES</span>
+                </summary>
+                <div class="finding-details">
+                    <p><strong>Description:</strong> The process 'VBoxClient' (PID 1286) is executing from a binary that has been deleted from the filesystem (/usr/bin/VBoxClient (deleted)). While common during system upgrades before services are restarted, this is also a classic technique used by attackers to hide malware.</p>
+                    <div class="code-block">
+                        <strong>Evidence:</strong>
+                        <pre><code>PID: 1286, Command: VBoxClient, Path: /usr/bin/VBoxClient (deleted)</code></pre>
+                    </div>
+                    <p class="remediation"><strong>Remediation:</strong> Restart the affected service: systemctl restart VBoxClient (or kill PID 1286 if unauthorized).</p>
+                    <p><strong>References:</strong> <a href="https://attack.mitre.org/techniques/T1070/004/" target="_blank">https://attack.mitre.org/techniques/T1070/004/</a> </p>
+                </div>
+            </div>
+            
+
+            <div class="finding-card border-medium">
+                <summary class="finding-header">
+                    <span class="badge badge-medium">MEDIUM</span>
+                    
+                    <span class="finding-id">AEG-SRV-003</span>
+                    <span class="finding-title">Process 'VBoxClient' running from deleted binary</span>
+                    <span class="finding-module">SERVICES</span>
+                </summary>
+                <div class="finding-details">
+                    <p><strong>Description:</strong> The process 'VBoxClient' (PID 1288) is executing from a binary that has been deleted from the filesystem (/usr/bin/VBoxClient (deleted)). While common during system upgrades before services are restarted, this is also a classic technique used by attackers to hide malware.</p>
+                    <div class="code-block">
+                        <strong>Evidence:</strong>
+                        <pre><code>PID: 1288, Command: VBoxClient, Path: /usr/bin/VBoxClient (deleted)</code></pre>
+                    </div>
+                    <p class="remediation"><strong>Remediation:</strong> Restart the affected service: systemctl restart VBoxClient (or kill PID 1288 if unauthorized).</p>
+                    <p><strong>References:</strong> <a href="https://attack.mitre.org/techniques/T1070/004/" target="_blank">https://attack.mitre.org/techniques/T1070/004/</a> </p>
+                </div>
+            </div>
+            
+
+            <div class="finding-card border-medium">
+                <summary class="finding-header">
+                    <span class="badge badge-medium">MEDIUM</span>
+                    
+                    <span class="finding-id">AEG-SRV-003</span>
+                    <span class="finding-title">Process 'xfsettingsd' running from deleted binary</span>
+                    <span class="finding-module">SERVICES</span>
+                </summary>
+                <div class="finding-details">
+                    <p><strong>Description:</strong> The process 'xfsettingsd' (PID 1375) is executing from a binary that has been deleted from the filesystem (/usr/bin/xfsettingsd (deleted)). While common during system upgrades before services are restarted, this is also a classic technique used by attackers to hide malware.</p>
+                    <div class="code-block">
+                        <strong>Evidence:</strong>
+                        <pre><code>PID: 1375, Command: xfsettingsd, Path: /usr/bin/xfsettingsd (deleted)</code></pre>
+                    </div>
+                    <p class="remediation"><strong>Remediation:</strong> Restart the affected service: systemctl restart xfsettingsd (or kill PID 1375 if unauthorized).</p>
+                    <p><strong>References:</strong> <a href="https://attack.mitre.org/techniques/T1070/004/" target="_blank">https://attack.mitre.org/techniques/T1070/004/</a> </p>
+                </div>
+            </div>
+            
+
+            <div class="finding-card border-medium">
+                <summary class="finding-header">
+                    <span class="badge badge-medium">MEDIUM</span>
+                    
+                    <span class="finding-id">AEG-SRV-003</span>
+                    <span class="finding-title">Process 'xfce4-panel' running from deleted binary</span>
+                    <span class="finding-module">SERVICES</span>
+                </summary>
+                <div class="finding-details">
+                    <p><strong>Description:</strong> The process 'xfce4-panel' (PID 1387) is executing from a binary that has been deleted from the filesystem (/usr/bin/xfce4-panel (deleted)). While common during system upgrades before services are restarted, this is also a classic technique used by attackers to hide malware.</p>
+                    <div class="code-block">
+                        <strong>Evidence:</strong>
+                        <pre><code>PID: 1387, Command: xfce4-panel, Path: /usr/bin/xfce4-panel (deleted)</code></pre>
+                    </div>
+                    <p class="remediation"><strong>Remediation:</strong> Restart the affected service: systemctl restart xfce4-panel (or kill PID 1387 if unauthorized).</p>
+                    <p><strong>References:</strong> <a href="https://attack.mitre.org/techniques/T1070/004/" target="_blank">https://attack.mitre.org/techniques/T1070/004/</a> </p>
+                </div>
+            </div>
+            
+
+            <div class="finding-card border-medium">
+                <summary class="finding-header">
+                    <span class="badge badge-medium">MEDIUM</span>
+                    
+                    <span class="finding-id">AEG-SRV-003</span>
+                    <span class="finding-title">Process 'xfdesktop' running from deleted binary</span>
+                    <span class="finding-module">SERVICES</span>
+                </summary>
+                <div class="finding-details">
+                    <p><strong>Description:</strong> The process 'xfdesktop' (PID 1400) is executing from a binary that has been deleted from the filesystem (/usr/bin/xfdesktop (deleted)). While common during system upgrades before services are restarted, this is also a classic technique used by attackers to hide malware.</p>
+                    <div class="code-block">
+                        <strong>Evidence:</strong>
+                        <pre><code>PID: 1400, Command: xfdesktop, Path: /usr/bin/xfdesktop (deleted)</code></pre>
+                    </div>
+                    <p class="remediation"><strong>Remediation:</strong> Restart the affected service: systemctl restart xfdesktop (or kill PID 1400 if unauthorized).</p>
+                    <p><strong>References:</strong> <a href="https://attack.mitre.org/techniques/T1070/004/" target="_blank">https://attack.mitre.org/techniques/T1070/004/</a> </p>
+                </div>
+            </div>
+            
+
+            <div class="finding-card border-medium">
+                <summary class="finding-header">
+                    <span class="badge badge-medium">MEDIUM</span>
+                    
+                    <span class="finding-id">AEG-SRV-003</span>
+                    <span class="finding-title">Process 'xdg-desktop-por' running from deleted binary</span>
+                    <span class="finding-module">SERVICES</span>
+                </summary>
+                <div class="finding-details">
+                    <p><strong>Description:</strong> The process 'xdg-desktop-por' (PID 2821) is executing from a binary that has been deleted from the filesystem (/usr/libexec/xdg-desktop-portal (deleted)). While common during system upgrades before services are restarted, this is also a classic technique used by attackers to hide malware.</p>
+                    <div class="code-block">
+                        <strong>Evidence:</strong>
+                        <pre><code>PID: 2821, Command: xdg-desktop-por, Path: /usr/libexec/xdg-desktop-portal (deleted)</code></pre>
+                    </div>
+                    <p class="remediation"><strong>Remediation:</strong> Restart the affected service: systemctl restart xdg-desktop-por (or kill PID 2821 if unauthorized).</p>
+                    <p><strong>References:</strong> <a href="https://attack.mitre.org/techniques/T1070/004/" target="_blank">https://attack.mitre.org/techniques/T1070/004/</a> </p>
+                </div>
+            </div>
+            
+
+            <div class="finding-card border-medium">
+                <summary class="finding-header">
+                    <span class="badge badge-medium">MEDIUM</span>
+                    
+                    <span class="finding-id">AEG-SRV-003</span>
+                    <span class="finding-title">Process 'xdg-permission-' running from deleted binary</span>
+                    <span class="finding-module">SERVICES</span>
+                </summary>
+                <div class="finding-details">
+                    <p><strong>Description:</strong> The process 'xdg-permission-' (PID 2833) is executing from a binary that has been deleted from the filesystem (/usr/libexec/xdg-permission-store (deleted)). While common during system upgrades before services are restarted, this is also a classic technique used by attackers to hide malware.</p>
+                    <div class="code-block">
+                        <strong>Evidence:</strong>
+                        <pre><code>PID: 2833, Command: xdg-permission-, Path: /usr/libexec/xdg-permission-store (deleted)</code></pre>
+                    </div>
+                    <p class="remediation"><strong>Remediation:</strong> Restart the affected service: systemctl restart xdg-permission- (or kill PID 2833 if unauthorized).</p>
+                    <p><strong>References:</strong> <a href="https://attack.mitre.org/techniques/T1070/004/" target="_blank">https://attack.mitre.org/techniques/T1070/004/</a> </p>
+                </div>
+            </div>
+            
+
+            <div class="finding-card border-medium">
+                <summary class="finding-header">
+                    <span class="badge badge-medium">MEDIUM</span>
+                    
+                    <span class="finding-id">AEG-SRV-003</span>
+                    <span class="finding-title">Process 'xdg-document-po' running from deleted binary</span>
+                    <span class="finding-module">SERVICES</span>
+                </summary>
+                <div class="finding-details">
+                    <p><strong>Description:</strong> The process 'xdg-document-po' (PID 2849) is executing from a binary that has been deleted from the filesystem (/usr/libexec/xdg-document-portal (deleted)). While common during system upgrades before services are restarted, this is also a classic technique used by attackers to hide malware.</p>
+                    <div class="code-block">
+                        <strong>Evidence:</strong>
+                        <pre><code>PID: 2849, Command: xdg-document-po, Path: /usr/libexec/xdg-document-portal (deleted)</code></pre>
+                    </div>
+                    <p class="remediation"><strong>Remediation:</strong> Restart the affected service: systemctl restart xdg-document-po (or kill PID 2849 if unauthorized).</p>
+                    <p><strong>References:</strong> <a href="https://attack.mitre.org/techniques/T1070/004/" target="_blank">https://attack.mitre.org/techniques/T1070/004/</a> </p>
+                </div>
+            </div>
+            
+
+            <div class="finding-card border-medium">
+                <summary class="finding-header">
+                    <span class="badge badge-medium">MEDIUM</span>
+                    
+                    <span class="finding-id">AEG-KERN-KERNEL-DMESG_RESTRICT</span>
+                    <span class="finding-title">Insecure kernel setting: kernel.dmesg_restrict</span>
+                    <span class="finding-module">KERNEL</span>
+                </summary>
+                <div class="finding-details">
+                    <p><strong>Description:</strong> Unprivileged users can view kernel syslog messages (dmesg). This can leak kernel addresses or memory contents useful for local kernel exploits.</p>
+                    <div class="code-block">
+                        <strong>Evidence:</strong>
+                        <pre><code>kernel.dmesg_restrict = 0 (Expected: == 1)</code></pre>
+                    </div>
+                    <p class="remediation"><strong>Remediation:</strong> Add or update the setting in /etc/sysctl.conf: kernel.dmesg_restrict = 1, then load it: sudo sysctl -p</p>
+                    <p><strong>References:</strong> <a href="https://www.cisecurity.org/benchmark/ubuntu_linux" target="_blank">https://www.cisecurity.org/benchmark/ubuntu_linux</a> </p>
+                </div>
+            </div>
+            
+
+            <div class="finding-card border-medium">
+                <summary class="finding-header">
+                    <span class="badge badge-medium">MEDIUM</span>
+                    
+                    <span class="finding-id">AEG-KERN-KERNEL-KPTR_RESTRICT</span>
+                    <span class="finding-title">Insecure kernel setting: kernel.kptr_restrict</span>
+                    <span class="finding-module">KERNEL</span>
+                </summary>
+                <div class="finding-details">
+                    <p><strong>Description:</strong> Kernel pointer addresses are exposed to unprivileged users, defeating kernel ASLR.</p>
+                    <div class="code-block">
+                        <strong>Evidence:</strong>
+                        <pre><code>kernel.kptr_restrict = 0 (Expected: == 2)</code></pre>
+                    </div>
+                    <p class="remediation"><strong>Remediation:</strong> Add or update the setting in /etc/sysctl.conf: kernel.kptr_restrict = 2, then load it: sudo sysctl -p</p>
+                    <p><strong>References:</strong> <a href="https://www.cisecurity.org/benchmark/ubuntu_linux" target="_blank">https://www.cisecurity.org/benchmark/ubuntu_linux</a> </p>
+                </div>
+            </div>
+            
+
+            <div class="finding-card border-high">
+                <summary class="finding-header">
+                    <span class="badge badge-high">HIGH</span>
+                    
+                    <span class="finding-id">AEG-KERN-KERNEL-YAMA-PTRACE_SCOPE</span>
+                    <span class="finding-title">Insecure kernel setting: kernel.yama.ptrace_scope</span>
+                    <span class="finding-module">KERNEL</span>
+                </summary>
+                <div class="finding-details">
+                    <p><strong>Description:</strong> Yama ptrace scope is set to unrestricted, allowing process memory reading/injection between users, enabling process hijacking.</p>
+                    <div class="code-block">
+                        <strong>Evidence:</strong>
+                        <pre><code>kernel.yama.ptrace_scope = 0 (Expected: &gt;= 1)</code></pre>
+                    </div>
+                    <p class="remediation"><strong>Remediation:</strong> Add or update the setting in /etc/sysctl.conf: kernel.yama.ptrace_scope = 1, then load it: sudo sysctl -p</p>
+                    <p><strong>References:</strong> <a href="https://www.cisecurity.org/benchmark/ubuntu_linux" target="_blank">https://www.cisecurity.org/benchmark/ubuntu_linux</a> </p>
+                </div>
+            </div>
+            
+
+            <div class="finding-card border-medium">
+                <summary class="finding-header">
+                    <span class="badge badge-medium">MEDIUM</span>
+                    
+                    <span class="finding-id">AEG-KERN-NET-IPV4-CONF-ALL-RP_FILTER</span>
+                    <span class="finding-title">Insecure kernel setting: net.ipv4.conf.all.rp_filter</span>
+                    <span class="finding-module">KERNEL</span>
+                </summary>
+                <div class="finding-details">
+                    <p><strong>Description:</strong> Reverse Path Filtering is disabled, making the system vulnerable to IP address spoofing attacks.</p>
+                    <div class="code-block">
+                        <strong>Evidence:</strong>
+                        <pre><code>net.ipv4.conf.all.rp_filter = 0 (Expected: == 1)</code></pre>
+                    </div>
+                    <p class="remediation"><strong>Remediation:</strong> Add or update the setting in /etc/sysctl.conf: net.ipv4.conf.all.rp_filter = 1, then load it: sudo sysctl -p</p>
+                    <p><strong>References:</strong> <a href="https://www.cisecurity.org/benchmark/ubuntu_linux" target="_blank">https://www.cisecurity.org/benchmark/ubuntu_linux</a> </p>
+                </div>
+            </div>
+            
+
+            <div class="finding-card border-low">
+                <summary class="finding-header">
+                    <span class="badge badge-low">LOW</span>
+                    
+                    <span class="finding-id">AEG-KERN-NET-IPV4-CONF-ALL-ACCEPT_REDIRECTS</span>
+                    <span class="finding-title">Insecure kernel setting: net.ipv4.conf.all.accept_redirects</span>
+                    <span class="finding-module">KERNEL</span>
+                </summary>
+                <div class="finding-details">
+                    <p><strong>Description:</strong> System accepts ICMP redirect messages, allowing attackers to route traffic via malicious routes.</p>
+                    <div class="code-block">
+                        <strong>Evidence:</strong>
+                        <pre><code>net.ipv4.conf.all.accept_redirects = 1 (Expected: == 0)</code></pre>
+                    </div>
+                    <p class="remediation"><strong>Remediation:</strong> Add or update the setting in /etc/sysctl.conf: net.ipv4.conf.all.accept_redirects = 0, then load it: sudo sysctl -p</p>
+                    <p><strong>References:</strong> <a href="https://www.cisecurity.org/benchmark/ubuntu_linux" target="_blank">https://www.cisecurity.org/benchmark/ubuntu_linux</a> </p>
+                </div>
+            </div>
+            
+
+            <div class="finding-card border-low">
+                <summary class="finding-header">
+                    <span class="badge badge-low">LOW</span>
+                    
+                    <span class="finding-id">AEG-KERN-NET-IPV6-CONF-ALL-ACCEPT_REDIRECTS</span>
+                    <span class="finding-title">Insecure kernel setting: net.ipv6.conf.all.accept_redirects</span>
+                    <span class="finding-module">KERNEL</span>
+                </summary>
+                <div class="finding-details">
+                    <p><strong>Description:</strong> IPv6 system accepts ICMP redirect messages, allowing routing redirection attacks.</p>
+                    <div class="code-block">
+                        <strong>Evidence:</strong>
+                        <pre><code>net.ipv6.conf.all.accept_redirects = 1 (Expected: == 0)</code></pre>
+                    </div>
+                    <p class="remediation"><strong>Remediation:</strong> Add or update the setting in /etc/sysctl.conf: net.ipv6.conf.all.accept_redirects = 0, then load it: sudo sysctl -p</p>
+                    <p><strong>References:</strong> <a href="https://www.cisecurity.org/benchmark/ubuntu_linux" target="_blank">https://www.cisecurity.org/benchmark/ubuntu_linux</a> </p>
+                </div>
+            </div>
+            
+
+            <div class="finding-card border-low">
+                <summary class="finding-header">
+                    <span class="badge badge-low">LOW</span>
+                    
+                    <span class="finding-id">AEG-KERN-NET-IPV4-CONF-ALL-SEND_REDIRECTS</span>
+                    <span class="finding-title">Insecure kernel setting: net.ipv4.conf.all.send_redirects</span>
+                    <span class="finding-module">KERNEL</span>
+                </summary>
+                <div class="finding-details">
+                    <p><strong>Description:</strong> System sends ICMP redirect messages. Hosts should only send redirects if they act as gateway routers.</p>
+                    <div class="code-block">
+                        <strong>Evidence:</strong>
+                        <pre><code>net.ipv4.conf.all.send_redirects = 1 (Expected: == 0)</code></pre>
+                    </div>
+                    <p class="remediation"><strong>Remediation:</strong> Add or update the setting in /etc/sysctl.conf: net.ipv4.conf.all.send_redirects = 0, then load it: sudo sysctl -p</p>
+                    <p><strong>References:</strong> <a href="https://www.cisecurity.org/benchmark/ubuntu_linux" target="_blank">https://www.cisecurity.org/benchmark/ubuntu_linux</a> </p>
+                </div>
+            </div>
+            
+
+            <div class="finding-card border-high">
+                <summary class="finding-header">
+                    <span class="badge badge-high">HIGH</span>
+                    <span class="badge badge-compliance">PCI-DSS v4.0 2.2.3</span><span class="badge badge-compliance">ISO27001:2022 A.8.12</span><span class="badge badge-compliance">CIS-Control 5</span>
+                    <span class="finding-id">AEG-OS-001</span>
+                    <span class="finding-title">Scanner run without root privileges</span>
+                    <span class="finding-module">OS</span>
+                </summary>
+                <div class="finding-details">
+                    <p><strong>Description:</strong> The scanner is executed as a non-root user. Many system audits, configuration reviews, and security checks will fail or return incomplete results due to permission restrictions.</p>
+                    <div class="code-block">
+                        <strong>Evidence:</strong>
+                        <pre><code>Running as UID 1000</code></pre>
+                    </div>
+                    <p class="remediation"><strong>Remediation:</strong> Run the vulnerability scanner with root privileges: sudo python3 nullhound.py</p>
+                    <p><strong>References:</strong> <a href="https://github.com/nullhound-scanner/nullhound" target="_blank">https://github.com/nullhound-scanner/nullhound</a> </p>
+                </div>
+            </div>
+            
+
+            <div class="finding-card border-low">
+                <summary class="finding-header">
+                    <span class="badge badge-low">LOW</span>
+                    <span class="badge badge-compliance">PCI-DSS v4.0 2.2.4</span>
+                    <span class="finding-id">AEG-SSH-007</span>
+                    <span class="finding-title">Insecure SSH config: x11forwarding set to 'yes'</span>
+                    <span class="finding-module">SSH</span>
+                </summary>
+                <div class="finding-details">
+                    <p><strong>Description:</strong> X11 forwarding is enabled. Malicious local users can hijack remote graphical sessions.</p>
+                    <div class="code-block">
+                        <strong>Evidence:</strong>
+                        <pre><code>sshd_config: x11forwarding yes</code></pre>
+                    </div>
+                    <p class="remediation"><strong>Remediation:</strong> Edit /etc/ssh/sshd_config, modify the line to 'x11forwarding no', and reload sshd: sudo systemctl reload sshd</p>
+                    <p><strong>References:</strong> <a href="https://www.cisecurity.org/benchmark/ubuntu_linux" target="_blank">https://www.cisecurity.org/benchmark/ubuntu_linux</a> </p>
+                </div>
+            </div>
+            
+
+            <div class="finding-card border-low">
+                <summary class="finding-header">
+                    <span class="badge badge-low">LOW</span>
+                    <span class="badge badge-compliance">PCI-DSS v4.0 8.2.1</span><span class="badge badge-compliance">ISO27001:2022 A.5.17</span><span class="badge badge-compliance">CIS-Control 4.3</span>
+                    <span class="finding-id">AEG-SSH-014</span>
+                    <span class="finding-title">SSH idle timeout is not configured</span>
+                    <span class="finding-module">SSH</span>
+                </summary>
+                <div class="finding-details">
+                    <p><strong>Description:</strong> ClientAliveInterval is disabled or not set. Inactive SSH sessions will remain open indefinitely, increasing the risk of unauthorized session hijacking on unattended terminals.</p>
+                    <div class="code-block">
+                        <strong>Evidence:</strong>
+                        <pre><code>sshd_config: ClientAliveInterval is missing or 0</code></pre>
+                    </div>
+                    <p class="remediation"><strong>Remediation:</strong> Configure 'ClientAliveInterval 300' and 'ClientAliveCountMax 3' in sshd_config.</p>
+                    <p><strong>References:</strong> <a href="https://www.cisecurity.org/benchmark/ubuntu_linux" target="_blank">https://www.cisecurity.org/benchmark/ubuntu_linux</a> </p>
+                </div>
+            </div>
+            
+
+            <div class="finding-card border-critical">
+                <summary class="finding-header">
+                    <span class="badge badge-critical">CRITICAL</span>
+                    <span class="badge badge-compliance">PCI-DSS v4.0 2.2.4</span><span class="badge badge-compliance">ISO27001:2022 A.8.12</span><span class="badge badge-compliance">CIS-Control 5.4</span>
+                    <span class="finding-id">AEG-CRN-002</span>
+                    <span class="finding-title">Cron script referenced in 'apt-compat' is world-writable</span>
+                    <span class="finding-module">CRON</span>
+                </summary>
+                <div class="finding-details">
+                    <p><strong>Description:</strong> The script '/dev/urandom' executed by a cron job in '/etc/cron.daily/apt-compat' is world-writable. A local attacker can edit the script contents to execute code with the privileges of the cron job (usually root).</p>
+                    <div class="code-block">
+                        <strong>Evidence:</strong>
+                        <pre><code>Cron file: /etc/cron.daily/apt-compat, Script: /dev/urandom</code></pre>
+                    </div>
+                    <p class="remediation"><strong>Remediation:</strong> Restrict write permission to owner: chmod o-w /dev/urandom</p>
+                    <p><strong>References:</strong> <a href="https://attack.mitre.org/techniques/T1053/005/" target="_blank">https://attack.mitre.org/techniques/T1053/005/</a> </p>
+                </div>
+            </div>
+            
+
+            <div class="finding-card border-low">
+                <summary class="finding-header">
+                    <span class="badge badge-low">LOW</span>
+                    <span class="badge badge-compliance">PCI-DSS v4.0 2.2.4</span><span class="badge badge-compliance">ISO27001:2022 A.8.12</span><span class="badge badge-compliance">CIS-Control 5.4</span>
+                    <span class="finding-id">AEG-FS-002</span>
+                    <span class="finding-title">/tmp partition is not mounted with 'noexec'</span>
+                    <span class="finding-module">FILESYSTEM</span>
+                </summary>
+                <div class="finding-details">
+                    <p><strong>Description:</strong> The /tmp partition is not configured with 'noexec' in mount options. Staging and executing malware directly from temporary directories is a common attacker tactic.</p>
+                    <div class="code-block">
+                        <strong>Evidence:</strong>
+                        <pre><code>tmpfs /tmp tmpfs rw,nosuid,nodev,nr_inodes=1048576,inode64 0 0</code></pre>
+                    </div>
+                    <p class="remediation"><strong>Remediation:</strong> Edit /etc/fstab and add 'noexec,nosuid,nodev' to the /tmp mount options, then remount.</p>
+                    <p><strong>References:</strong> <a href="https://www.cisecurity.org/benchmark/ubuntu_linux" target="_blank">https://www.cisecurity.org/benchmark/ubuntu_linux</a> </p>
+                </div>
+            </div>
+            
+
+            <div class="finding-card border-medium">
+                <summary class="finding-header">
+                    <span class="badge badge-medium">MEDIUM</span>
+                    <span class="badge badge-compliance">PCI-DSS v4.0 2.2.4</span><span class="badge badge-compliance">ISO27001:2022 A.8.12</span>
+                    <span class="finding-id">AEG-FS-004</span>
+                    <span class="finding-title">Unusual SUID/SGID binary detected</span>
+                    <span class="finding-module">FILESYSTEM</span>
+                </summary>
+                <div class="finding-details">
+                    <p><strong>Description:</strong> An SUID or SGID binary was found that is not in the baseline of common/standard system binaries. SUID files run with owner permissions (often root) and are key targets for privilege escalation.</p>
+                    <div class="code-block">
+                        <strong>Evidence:</strong>
+                        <pre><code>/bin/kismet_cap_ti_cc_2531 (Perms: 4754)
+/bin/plocate (Perms: 2755)
+/bin/ssh-agent (Perms: 2755)
+/bin/kismet_cap_hak5_wifi_coconut (Perms: 4754)
+/bin/crontab (Perms: 2755)
+/bin/kismet_cap_nrf_mousejack (Perms: 4754)
+/bin/kismet_cap_linux_bluetooth (Perms: 4754)
+/bin/fusermount3 (Perms: 4755)
+/bin/kismet_cap_nrf_51822 (Perms: 4754)
+/bin/pkexec (Perms: 4755)
+/bin/kismet_cap_rz_killerbee (Perms: 4754)
+/bin/chsh (Perms: 4755)
+/bin/kismet_cap_linux_wifi (Perms: 4754)
+/bin/su (Perms: 4755)
+/bin/chfn (Perms: 4755)
+/bin/passwd (Perms: 4755)
+/bin/chage (Perms: 2755)
+/bin/kismet_cap_nxp_kw41z (Perms: 4754)
+/bin/rsh-redone-rsh (Perms: 4755)
+/bin/gpasswd (Perms: 4755)
+/bin/ntfs-3g (Perms: 4755)
+/bin/sudo (Perms: 4755)
+/bin/kismet_cap_nrf_52840 (Perms: 4754)
+/bin/kismet_cap_ubertooth_one (Perms: 4754)
+/bin/rsh-redone-rlogin (Perms: 4755)
+/bin/kismet_cap_ti_cc_2540 (Perms: 4754)
+/bin/newgrp (Perms: 4755)
+/bin/expiry (Perms: 2755)
+/sbin/mount.cifs (Perms: 4755)
+/sbin/unix_chkpwd (Perms: 2755)
+/sbin/mount.nfs (Perms: 4755)
+/sbin/pppd (Perms: 4754)
+/usr/bin/mount (Perms: 4755)
+/usr/bin/kismet_cap_ti_cc_2531 (Perms: 4754)
+/usr/bin/plocate (Perms: 2755)
+/usr/bin/ssh-agent (Perms: 2755)
+/usr/bin/kismet_cap_hak5_wifi_coconut (Perms: 4754)
+/usr/bin/crontab (Perms: 2755)
+/usr/bin/kismet_cap_nrf_mousejack (Perms: 4754)
+/usr/bin/kismet_cap_linux_bluetooth (Perms: 4754)
+/usr/bin/fusermount3 (Perms: 4755)
+/usr/bin/kismet_cap_nrf_51822 (Perms: 4754)
+/usr/bin/umount (Perms: 4755)
+/usr/bin/kismet_cap_rz_killerbee (Perms: 4754)
+/usr/bin/kismet_cap_linux_wifi (Perms: 4754)
+/usr/bin/su (Perms: 4755)
+/usr/bin/kismet_cap_nxp_kw41z (Perms: 4754)
+/usr/bin/rsh-redone-rsh (Perms: 4755)
+/usr/bin/ntfs-3g (Perms: 4755)
+/usr/bin/kismet_cap_nrf_52840 (Perms: 4754)
+/usr/bin/kismet_cap_ubertooth_one (Perms: 4754)
+/usr/bin/rsh-redone-rlogin (Perms: 4755)
+/usr/bin/kismet_cap_ti_cc_2540 (Perms: 4754)
+/usr/sbin/mount.cifs (Perms: 4755)
+/usr/sbin/unix_chkpwd (Perms: 2755)
+/usr/sbin/mount.nfs (Perms: 4755)
+/usr/sbin/pppd (Perms: 4754)</code></pre>
+                    </div>
+                    <p class="remediation"><strong>Remediation:</strong> Verify if the SUID bit is necessary for these binaries. If not, remove it: sudo chmod u-s <file></p>
+                    <p><strong>References:</strong> <a href="https://attack.mitre.org/techniques/T1548/001/" target="_blank">https://attack.mitre.org/techniques/T1548/001/</a> </p>
+                </div>
+            </div>
+            
+
+            <div class="finding-card border-high">
+                <summary class="finding-header">
+                    <span class="badge badge-high">HIGH</span>
+                    <span class="badge badge-compliance">PCI-DSS v4.0 2.2.4</span>
+                    <span class="finding-id">AEG-FS-007</span>
+                    <span class="finding-title">Hidden directory in sensitive path</span>
+                    <span class="finding-module">FILESYSTEM</span>
+                </summary>
+                <div class="finding-details">
+                    <p><strong>Description:</strong> A hidden directory was found directly in a sensitive root directory. Attackers often prefix backdoor folders with a '.' to hide them from simple listings.</p>
+                    <div class="code-block">
+                        <strong>Evidence:</strong>
+                        <pre><code>/.cache
+/etc/.java</code></pre>
+                    </div>
+                    <p class="remediation"><strong>Remediation:</strong> Inspect the directory contents to ensure they are legitimate configurations or assets.</p>
+                    <p><strong>References:</strong> <a href="https://attack.mitre.org/techniques/T1564/001/" target="_blank">https://attack.mitre.org/techniques/T1564/001/</a> </p>
+                </div>
+            </div>
+            
+
+            <div class="finding-card border-low">
+                <summary class="finding-header">
+                    <span class="badge badge-low">LOW</span>
+                    
+                    <span class="finding-id">AEG-PKG-002</span>
+                    <span class="finding-title">Third-party package repositories configured</span>
+                    <span class="finding-module">PACKAGES</span>
+                </summary>
+                <div class="finding-details">
+                    <p><strong>Description:</strong> The system configures third-party repositories or PPAs. Software installed from these repositories bypasses the core distribution's security vetting, exposing the system to supply chain attacks.</p>
+                    <div class="code-block">
+                        <strong>Evidence:</strong>
+                        <pre><code>antigravity.list: deb [signed-by=/etc/apt/keyrings/antigravity-repo-key.gpg] https://us-central1-a</code></pre>
+                    </div>
+                    <p class="remediation"><strong>Remediation:</strong> Audit configured software sources and remove unnecessary PPAs or external repositories.</p>
+                    <p><strong>References:</strong> None</p>
+                </div>
+            </div>
+            
+
+            <div class="finding-card border-high">
+                <summary class="finding-header">
+                    <span class="badge badge-high">HIGH</span>
+                    
+                    <span class="finding-id">AEG-PKG-004</span>
+                    <span class="finding-title">Vulnerable python pip packages detected (4 vulnerabilities)</span>
+                    <span class="finding-module">PACKAGES</span>
+                </summary>
+                <div class="finding-details">
+                    <p><strong>Description:</strong> One or more installed Python pip packages have known CVE security vulnerabilities listed in the OSV database.</p>
+                    <div class="code-block">
+                        <strong>Evidence:</strong>
+                        <pre><code>bleach (6.3.0): GHSA-8rfp-98v4-mmr6 () - No summary available
+bleach (6.3.0): GHSA-g75f-g53v-794x () - No summary available
+cryptography (46.0.7): GHSA-537c-gmf6-5ccf () - No summary available</code></pre>
+                    </div>
+                    <p class="remediation"><strong>Remediation:</strong> Upgrade vulnerable packages using 'pip install --upgrade <package_name>'.</p>
+                    <p><strong>References:</strong> <a href="https://osv.dev" target="_blank">https://osv.dev</a> </p>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</body>
+</html>

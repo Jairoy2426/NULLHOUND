@@ -1,0 +1,292 @@
+================================================================================
+                        NULLHOUND SECURITY AUDIT REPORT
+================================================================================
+Scanner Version : 1.0.0
+Host Name       : kali
+Kernel Version  : Linux 6.19.14+kali-amd64
+Scan Time       : 2026-06-28 13:43:26 IST
+Executed User   : hercules
+Profile Level   : quick
+--------------------------------------------------------------------------------
+SUMMARY STATS:
+  Overall Risk Score: 100/100
+  System Hardening Index: 0/100
+  CRITICAL : 2 | HIGH : 3 | MEDIUM : 20
+  LOW      : 6 | INFO : 0
+================================================================================
+
+MODULE: USERS
+--------------------------------------------------------------------------------
+[MEDIUM] AEG-USR-006: System account 'postgres' has interactive login shell
+  Description : The system account 'postgres' (UID 113) is configured with an active login shell (/bin/bash). System accounts should be locked and prevented from logging in directly.
+  Evidence    : User: postgres, Shell: /bin/bash
+  Remediation : Change the user shell to a non-interactive shell: usermod -s /usr/sbin/nologin postgres
+  Compliance  : PCI-DSS v4.0 2.2.4, ISO27001:2022 A.8.12, CIS-Control 5.3
+  References  : https://www.cisecurity.org/benchmark/ubuntu_linux
+----------------------------------------
+
+MODULE: OS
+--------------------------------------------------------------------------------
+[HIGH] AEG-OS-001: Scanner run without root privileges
+  Description : The scanner is executed as a non-root user. Many system audits, configuration reviews, and security checks will fail or return incomplete results due to permission restrictions.
+  Evidence    : Running as UID 1000
+  Remediation : Run the vulnerability scanner with root privileges: sudo python3 nullhound.py
+  Compliance  : PCI-DSS v4.0 2.2.3, ISO27001:2022 A.8.12, CIS-Control 5
+  References  : https://github.com/nullhound-scanner/nullhound
+----------------------------------------
+
+MODULE: KERNEL
+--------------------------------------------------------------------------------
+[MEDIUM] AEG-KERN-KERNEL-DMESG_RESTRICT: Insecure kernel setting: kernel.dmesg_restrict
+  Description : Unprivileged users can view kernel syslog messages (dmesg). This can leak kernel addresses or memory contents useful for local kernel exploits.
+  Evidence    : kernel.dmesg_restrict = 0 (Expected: == 1)
+  Remediation : Add or update the setting in /etc/sysctl.conf: kernel.dmesg_restrict = 1, then load it: sudo sysctl -p
+  References  : https://www.cisecurity.org/benchmark/ubuntu_linux
+----------------------------------------
+[MEDIUM] AEG-KERN-KERNEL-KPTR_RESTRICT: Insecure kernel setting: kernel.kptr_restrict
+  Description : Kernel pointer addresses are exposed to unprivileged users, defeating kernel ASLR.
+  Evidence    : kernel.kptr_restrict = 0 (Expected: == 2)
+  Remediation : Add or update the setting in /etc/sysctl.conf: kernel.kptr_restrict = 2, then load it: sudo sysctl -p
+  References  : https://www.cisecurity.org/benchmark/ubuntu_linux
+----------------------------------------
+[HIGH] AEG-KERN-KERNEL-YAMA-PTRACE_SCOPE: Insecure kernel setting: kernel.yama.ptrace_scope
+  Description : Yama ptrace scope is set to unrestricted, allowing process memory reading/injection between users, enabling process hijacking.
+  Evidence    : kernel.yama.ptrace_scope = 0 (Expected: >= 1)
+  Remediation : Add or update the setting in /etc/sysctl.conf: kernel.yama.ptrace_scope = 1, then load it: sudo sysctl -p
+  References  : https://www.cisecurity.org/benchmark/ubuntu_linux
+----------------------------------------
+[MEDIUM] AEG-KERN-NET-IPV4-CONF-ALL-RP_FILTER: Insecure kernel setting: net.ipv4.conf.all.rp_filter
+  Description : Reverse Path Filtering is disabled, making the system vulnerable to IP address spoofing attacks.
+  Evidence    : net.ipv4.conf.all.rp_filter = 0 (Expected: == 1)
+  Remediation : Add or update the setting in /etc/sysctl.conf: net.ipv4.conf.all.rp_filter = 1, then load it: sudo sysctl -p
+  References  : https://www.cisecurity.org/benchmark/ubuntu_linux
+----------------------------------------
+[LOW] AEG-KERN-NET-IPV4-CONF-ALL-ACCEPT_REDIRECTS: Insecure kernel setting: net.ipv4.conf.all.accept_redirects
+  Description : System accepts ICMP redirect messages, allowing attackers to route traffic via malicious routes.
+  Evidence    : net.ipv4.conf.all.accept_redirects = 1 (Expected: == 0)
+  Remediation : Add or update the setting in /etc/sysctl.conf: net.ipv4.conf.all.accept_redirects = 0, then load it: sudo sysctl -p
+  References  : https://www.cisecurity.org/benchmark/ubuntu_linux
+----------------------------------------
+[LOW] AEG-KERN-NET-IPV6-CONF-ALL-ACCEPT_REDIRECTS: Insecure kernel setting: net.ipv6.conf.all.accept_redirects
+  Description : IPv6 system accepts ICMP redirect messages, allowing routing redirection attacks.
+  Evidence    : net.ipv6.conf.all.accept_redirects = 1 (Expected: == 0)
+  Remediation : Add or update the setting in /etc/sysctl.conf: net.ipv6.conf.all.accept_redirects = 0, then load it: sudo sysctl -p
+  References  : https://www.cisecurity.org/benchmark/ubuntu_linux
+----------------------------------------
+[LOW] AEG-KERN-NET-IPV4-CONF-ALL-SEND_REDIRECTS: Insecure kernel setting: net.ipv4.conf.all.send_redirects
+  Description : System sends ICMP redirect messages. Hosts should only send redirects if they act as gateway routers.
+  Evidence    : net.ipv4.conf.all.send_redirects = 1 (Expected: == 0)
+  Remediation : Add or update the setting in /etc/sysctl.conf: net.ipv4.conf.all.send_redirects = 0, then load it: sudo sysctl -p
+  References  : https://www.cisecurity.org/benchmark/ubuntu_linux
+----------------------------------------
+
+MODULE: SERVICES
+--------------------------------------------------------------------------------
+[MEDIUM] AEG-SRV-003: Process 'xfce4-session' running from deleted binary
+  Description : The process 'xfce4-session' (PID 1174) is executing from a binary that has been deleted from the filesystem (/usr/bin/xfce4-session (deleted)). While common during system upgrades before services are restarted, this is also a classic technique used by attackers to hide malware.
+  Evidence    : PID: 1174, Command: xfce4-session, Path: /usr/bin/xfce4-session (deleted)
+  Remediation : Restart the affected service: systemctl restart xfce4-session (or kill PID 1174 if unauthorized).
+  References  : https://attack.mitre.org/techniques/T1070/004/
+----------------------------------------
+[MEDIUM] AEG-SRV-003: Process 'VBoxClient' running from deleted binary
+  Description : The process 'VBoxClient' (PID 1255) is executing from a binary that has been deleted from the filesystem (/usr/bin/VBoxClient (deleted)). While common during system upgrades before services are restarted, this is also a classic technique used by attackers to hide malware.
+  Evidence    : PID: 1255, Command: VBoxClient, Path: /usr/bin/VBoxClient (deleted)
+  Remediation : Restart the affected service: systemctl restart VBoxClient (or kill PID 1255 if unauthorized).
+  References  : https://attack.mitre.org/techniques/T1070/004/
+----------------------------------------
+[MEDIUM] AEG-SRV-003: Process 'VBoxClient' running from deleted binary
+  Description : The process 'VBoxClient' (PID 1256) is executing from a binary that has been deleted from the filesystem (/usr/bin/VBoxClient (deleted)). While common during system upgrades before services are restarted, this is also a classic technique used by attackers to hide malware.
+  Evidence    : PID: 1256, Command: VBoxClient, Path: /usr/bin/VBoxClient (deleted)
+  Remediation : Restart the affected service: systemctl restart VBoxClient (or kill PID 1256 if unauthorized).
+  References  : https://attack.mitre.org/techniques/T1070/004/
+----------------------------------------
+[MEDIUM] AEG-SRV-003: Process 'VBoxClient' running from deleted binary
+  Description : The process 'VBoxClient' (PID 1262) is executing from a binary that has been deleted from the filesystem (/usr/bin/VBoxClient (deleted)). While common during system upgrades before services are restarted, this is also a classic technique used by attackers to hide malware.
+  Evidence    : PID: 1262, Command: VBoxClient, Path: /usr/bin/VBoxClient (deleted)
+  Remediation : Restart the affected service: systemctl restart VBoxClient (or kill PID 1262 if unauthorized).
+  References  : https://attack.mitre.org/techniques/T1070/004/
+----------------------------------------
+[MEDIUM] AEG-SRV-003: Process 'VBoxClient' running from deleted binary
+  Description : The process 'VBoxClient' (PID 1264) is executing from a binary that has been deleted from the filesystem (/usr/bin/VBoxClient (deleted)). While common during system upgrades before services are restarted, this is also a classic technique used by attackers to hide malware.
+  Evidence    : PID: 1264, Command: VBoxClient, Path: /usr/bin/VBoxClient (deleted)
+  Remediation : Restart the affected service: systemctl restart VBoxClient (or kill PID 1264 if unauthorized).
+  References  : https://attack.mitre.org/techniques/T1070/004/
+----------------------------------------
+[MEDIUM] AEG-SRV-003: Process 'VBoxClient' running from deleted binary
+  Description : The process 'VBoxClient' (PID 1270) is executing from a binary that has been deleted from the filesystem (/usr/bin/VBoxClient (deleted)). While common during system upgrades before services are restarted, this is also a classic technique used by attackers to hide malware.
+  Evidence    : PID: 1270, Command: VBoxClient, Path: /usr/bin/VBoxClient (deleted)
+  Remediation : Restart the affected service: systemctl restart VBoxClient (or kill PID 1270 if unauthorized).
+  References  : https://attack.mitre.org/techniques/T1070/004/
+----------------------------------------
+[MEDIUM] AEG-SRV-003: Process 'VBoxClient' running from deleted binary
+  Description : The process 'VBoxClient' (PID 1272) is executing from a binary that has been deleted from the filesystem (/usr/bin/VBoxClient (deleted)). While common during system upgrades before services are restarted, this is also a classic technique used by attackers to hide malware.
+  Evidence    : PID: 1272, Command: VBoxClient, Path: /usr/bin/VBoxClient (deleted)
+  Remediation : Restart the affected service: systemctl restart VBoxClient (or kill PID 1272 if unauthorized).
+  References  : https://attack.mitre.org/techniques/T1070/004/
+----------------------------------------
+[MEDIUM] AEG-SRV-003: Process 'VBoxClient' running from deleted binary
+  Description : The process 'VBoxClient' (PID 1286) is executing from a binary that has been deleted from the filesystem (/usr/bin/VBoxClient (deleted)). While common during system upgrades before services are restarted, this is also a classic technique used by attackers to hide malware.
+  Evidence    : PID: 1286, Command: VBoxClient, Path: /usr/bin/VBoxClient (deleted)
+  Remediation : Restart the affected service: systemctl restart VBoxClient (or kill PID 1286 if unauthorized).
+  References  : https://attack.mitre.org/techniques/T1070/004/
+----------------------------------------
+[MEDIUM] AEG-SRV-003: Process 'VBoxClient' running from deleted binary
+  Description : The process 'VBoxClient' (PID 1288) is executing from a binary that has been deleted from the filesystem (/usr/bin/VBoxClient (deleted)). While common during system upgrades before services are restarted, this is also a classic technique used by attackers to hide malware.
+  Evidence    : PID: 1288, Command: VBoxClient, Path: /usr/bin/VBoxClient (deleted)
+  Remediation : Restart the affected service: systemctl restart VBoxClient (or kill PID 1288 if unauthorized).
+  References  : https://attack.mitre.org/techniques/T1070/004/
+----------------------------------------
+[MEDIUM] AEG-SRV-003: Process 'xfsettingsd' running from deleted binary
+  Description : The process 'xfsettingsd' (PID 1375) is executing from a binary that has been deleted from the filesystem (/usr/bin/xfsettingsd (deleted)). While common during system upgrades before services are restarted, this is also a classic technique used by attackers to hide malware.
+  Evidence    : PID: 1375, Command: xfsettingsd, Path: /usr/bin/xfsettingsd (deleted)
+  Remediation : Restart the affected service: systemctl restart xfsettingsd (or kill PID 1375 if unauthorized).
+  References  : https://attack.mitre.org/techniques/T1070/004/
+----------------------------------------
+[MEDIUM] AEG-SRV-003: Process 'xfce4-panel' running from deleted binary
+  Description : The process 'xfce4-panel' (PID 1387) is executing from a binary that has been deleted from the filesystem (/usr/bin/xfce4-panel (deleted)). While common during system upgrades before services are restarted, this is also a classic technique used by attackers to hide malware.
+  Evidence    : PID: 1387, Command: xfce4-panel, Path: /usr/bin/xfce4-panel (deleted)
+  Remediation : Restart the affected service: systemctl restart xfce4-panel (or kill PID 1387 if unauthorized).
+  References  : https://attack.mitre.org/techniques/T1070/004/
+----------------------------------------
+[MEDIUM] AEG-SRV-003: Process 'xfdesktop' running from deleted binary
+  Description : The process 'xfdesktop' (PID 1400) is executing from a binary that has been deleted from the filesystem (/usr/bin/xfdesktop (deleted)). While common during system upgrades before services are restarted, this is also a classic technique used by attackers to hide malware.
+  Evidence    : PID: 1400, Command: xfdesktop, Path: /usr/bin/xfdesktop (deleted)
+  Remediation : Restart the affected service: systemctl restart xfdesktop (or kill PID 1400 if unauthorized).
+  References  : https://attack.mitre.org/techniques/T1070/004/
+----------------------------------------
+[MEDIUM] AEG-SRV-003: Process 'xdg-desktop-por' running from deleted binary
+  Description : The process 'xdg-desktop-por' (PID 2821) is executing from a binary that has been deleted from the filesystem (/usr/libexec/xdg-desktop-portal (deleted)). While common during system upgrades before services are restarted, this is also a classic technique used by attackers to hide malware.
+  Evidence    : PID: 2821, Command: xdg-desktop-por, Path: /usr/libexec/xdg-desktop-portal (deleted)
+  Remediation : Restart the affected service: systemctl restart xdg-desktop-por (or kill PID 2821 if unauthorized).
+  References  : https://attack.mitre.org/techniques/T1070/004/
+----------------------------------------
+[MEDIUM] AEG-SRV-003: Process 'xdg-permission-' running from deleted binary
+  Description : The process 'xdg-permission-' (PID 2833) is executing from a binary that has been deleted from the filesystem (/usr/libexec/xdg-permission-store (deleted)). While common during system upgrades before services are restarted, this is also a classic technique used by attackers to hide malware.
+  Evidence    : PID: 2833, Command: xdg-permission-, Path: /usr/libexec/xdg-permission-store (deleted)
+  Remediation : Restart the affected service: systemctl restart xdg-permission- (or kill PID 2833 if unauthorized).
+  References  : https://attack.mitre.org/techniques/T1070/004/
+----------------------------------------
+[MEDIUM] AEG-SRV-003: Process 'xdg-document-po' running from deleted binary
+  Description : The process 'xdg-document-po' (PID 2849) is executing from a binary that has been deleted from the filesystem (/usr/libexec/xdg-document-portal (deleted)). While common during system upgrades before services are restarted, this is also a classic technique used by attackers to hide malware.
+  Evidence    : PID: 2849, Command: xdg-document-po, Path: /usr/libexec/xdg-document-portal (deleted)
+  Remediation : Restart the affected service: systemctl restart xdg-document-po (or kill PID 2849 if unauthorized).
+  References  : https://attack.mitre.org/techniques/T1070/004/
+----------------------------------------
+
+MODULE: SSH
+--------------------------------------------------------------------------------
+[LOW] AEG-SSH-007: Insecure SSH config: x11forwarding set to 'yes'
+  Description : X11 forwarding is enabled. Malicious local users can hijack remote graphical sessions.
+  Evidence    : sshd_config: x11forwarding yes
+  Remediation : Edit /etc/ssh/sshd_config, modify the line to 'x11forwarding no', and reload sshd: sudo systemctl reload sshd
+  Compliance  : PCI-DSS v4.0 2.2.4
+  References  : https://www.cisecurity.org/benchmark/ubuntu_linux
+----------------------------------------
+[LOW] AEG-SSH-014: SSH idle timeout is not configured
+  Description : ClientAliveInterval is disabled or not set. Inactive SSH sessions will remain open indefinitely, increasing the risk of unauthorized session hijacking on unattended terminals.
+  Evidence    : sshd_config: ClientAliveInterval is missing or 0
+  Remediation : Configure 'ClientAliveInterval 300' and 'ClientAliveCountMax 3' in sshd_config.
+  Compliance  : PCI-DSS v4.0 8.2.1, ISO27001:2022 A.5.17, CIS-Control 4.3
+  References  : https://www.cisecurity.org/benchmark/ubuntu_linux
+----------------------------------------
+
+MODULE: FIREWALL
+--------------------------------------------------------------------------------
+[CRITICAL] AEG-FW-001: No active firewall detected
+  Description : The system does not have an active firewall configuration (UFW, Firewalld, iptables, or nftables). An unprotected system exposes all running network services directly to the network, increasing the risk of unauthorized access.
+  Evidence    : No active firewall rules or processes running.
+  Remediation : Install and enable a firewall management utility: 'sudo apt install ufw && sudo ufw enable' or 'sudo dnf install firewalld && sudo systemctl enable --now firewalld'.
+  Compliance  : PCI-DSS v4.0 1.2.1, ISO27001:2022 A.8.20, CIS-Control 4.4
+  References  : https://www.cisecurity.org/benchmark/ubuntu_linux
+----------------------------------------
+
+MODULE: CRON
+--------------------------------------------------------------------------------
+[CRITICAL] AEG-CRN-002: Cron script referenced in 'apt-compat' is world-writable
+  Description : The script '/dev/urandom' executed by a cron job in '/etc/cron.daily/apt-compat' is world-writable. A local attacker can edit the script contents to execute code with the privileges of the cron job (usually root).
+  Evidence    : Cron file: /etc/cron.daily/apt-compat, Script: /dev/urandom
+  Remediation : Restrict write permission to owner: chmod o-w /dev/urandom
+  Compliance  : PCI-DSS v4.0 2.2.4, ISO27001:2022 A.8.12, CIS-Control 5.4
+  References  : https://attack.mitre.org/techniques/T1053/005/
+----------------------------------------
+
+MODULE: FILESYSTEM
+--------------------------------------------------------------------------------
+[LOW] AEG-FS-002: /tmp partition is not mounted with 'noexec'
+  Description : The /tmp partition is not configured with 'noexec' in mount options. Staging and executing malware directly from temporary directories is a common attacker tactic.
+  Evidence    : tmpfs /tmp tmpfs rw,nosuid,nodev,nr_inodes=1048576,inode64 0 0
+  Remediation : Edit /etc/fstab and add 'noexec,nosuid,nodev' to the /tmp mount options, then remount.
+  Compliance  : PCI-DSS v4.0 2.2.4, ISO27001:2022 A.8.12, CIS-Control 5.4
+  References  : https://www.cisecurity.org/benchmark/ubuntu_linux
+----------------------------------------
+[MEDIUM] AEG-FS-004: Unusual SUID/SGID binary detected
+  Description : An SUID or SGID binary was found that is not in the baseline of common/standard system binaries. SUID files run with owner permissions (often root) and are key targets for privilege escalation.
+  Evidence    : /bin/kismet_cap_ti_cc_2531 (Perms: 4754)
+                /bin/plocate (Perms: 2755)
+                /bin/ssh-agent (Perms: 2755)
+                /bin/kismet_cap_hak5_wifi_coconut (Perms: 4754)
+                /bin/crontab (Perms: 2755)
+                /bin/kismet_cap_nrf_mousejack (Perms: 4754)
+                /bin/kismet_cap_linux_bluetooth (Perms: 4754)
+                /bin/fusermount3 (Perms: 4755)
+                /bin/kismet_cap_nrf_51822 (Perms: 4754)
+                /bin/pkexec (Perms: 4755)
+                /bin/kismet_cap_rz_killerbee (Perms: 4754)
+                /bin/chsh (Perms: 4755)
+                /bin/kismet_cap_linux_wifi (Perms: 4754)
+                /bin/su (Perms: 4755)
+                /bin/chfn (Perms: 4755)
+                /bin/passwd (Perms: 4755)
+                /bin/chage (Perms: 2755)
+                /bin/kismet_cap_nxp_kw41z (Perms: 4754)
+                /bin/rsh-redone-rsh (Perms: 4755)
+                /bin/gpasswd (Perms: 4755)
+                /bin/ntfs-3g (Perms: 4755)
+                /bin/sudo (Perms: 4755)
+                /bin/kismet_cap_nrf_52840 (Perms: 4754)
+                /bin/kismet_cap_ubertooth_one (Perms: 4754)
+                /bin/rsh-redone-rlogin (Perms: 4755)
+                /bin/kismet_cap_ti_cc_2540 (Perms: 4754)
+                /bin/newgrp (Perms: 4755)
+                /bin/expiry (Perms: 2755)
+                /sbin/mount.cifs (Perms: 4755)
+                /sbin/unix_chkpwd (Perms: 2755)
+                /sbin/mount.nfs (Perms: 4755)
+                /sbin/pppd (Perms: 4754)
+                /usr/bin/mount (Perms: 4755)
+                /usr/bin/kismet_cap_ti_cc_2531 (Perms: 4754)
+                /usr/bin/plocate (Perms: 2755)
+                /usr/bin/ssh-agent (Perms: 2755)
+                /usr/bin/kismet_cap_hak5_wifi_coconut (Perms: 4754)
+                /usr/bin/crontab (Perms: 2755)
+                /usr/bin/kismet_cap_nrf_mousejack (Perms: 4754)
+                /usr/bin/kismet_cap_linux_bluetooth (Perms: 4754)
+                /usr/bin/fusermount3 (Perms: 4755)
+                /usr/bin/kismet_cap_nrf_51822 (Perms: 4754)
+                /usr/bin/umount (Perms: 4755)
+                /usr/bin/kismet_cap_rz_killerbee (Perms: 4754)
+                /usr/bin/kismet_cap_linux_wifi (Perms: 4754)
+                /usr/bin/su (Perms: 4755)
+                /usr/bin/kismet_cap_nxp_kw41z (Perms: 4754)
+                /usr/bin/rsh-redone-rsh (Perms: 4755)
+                /usr/bin/ntfs-3g (Perms: 4755)
+                /usr/bin/kismet_cap_nrf_52840 (Perms: 4754)
+                /usr/bin/kismet_cap_ubertooth_one (Perms: 4754)
+                /usr/bin/rsh-redone-rlogin (Perms: 4755)
+                /usr/bin/kismet_cap_ti_cc_2540 (Perms: 4754)
+                /usr/sbin/mount.cifs (Perms: 4755)
+                /usr/sbin/unix_chkpwd (Perms: 2755)
+                /usr/sbin/mount.nfs (Perms: 4755)
+                /usr/sbin/pppd (Perms: 4754)
+  Remediation : Verify if the SUID bit is necessary for these binaries. If not, remove it: sudo chmod u-s <file>
+  Compliance  : PCI-DSS v4.0 2.2.4, ISO27001:2022 A.8.12
+  References  : https://attack.mitre.org/techniques/T1548/001/
+----------------------------------------
+[HIGH] AEG-FS-007: Hidden directory in sensitive path
+  Description : A hidden directory was found directly in a sensitive root directory. Attackers often prefix backdoor folders with a '.' to hide them from simple listings.
+  Evidence    : /.cache
+                /etc/.java
+  Remediation : Inspect the directory contents to ensure they are legitimate configurations or assets.
+  Compliance  : PCI-DSS v4.0 2.2.4
+  References  : https://attack.mitre.org/techniques/T1564/001/
+----------------------------------------
