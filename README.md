@@ -32,7 +32,7 @@
 
 1.  **Clone or Copy** the repository onto your target Linux host:
     ```bash
-    git clone https://github.com/your-username/nullhound.git
+    git clone https://github.com/Jairoy2426/NULLHOUND.git
     cd nullhound
     ```
 
