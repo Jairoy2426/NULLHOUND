@@ -1,5 +1,9 @@
 # 🛡️ NULLHOUND (Automated Enumeration & Guided Intelligence Scanner)
 
+> [!NOTE]
+> **Strictly for Educational Purposes** — Developed as a cybersecurity portfolio demonstration.  
+> **Author / Developer**: Made By Hercules
+
 **NULLHOUND** is a professional, terminal-only Linux vulnerability scanner and security configuration auditor written in Python. It is designed to perform localized checks covering system configurations, network exposures, filesystem permissions, user access patterns, kernel settings, and running services against hardening standards like the CIS Benchmarks.
 
 ---

@@ -513,6 +513,9 @@ class ReportReporter:
             </div>
             {findings_joined}
         </div>
+        <footer style="margin-top: 30px; padding: 20px; text-align: center; border-top: 1px solid var(--border-color); color: var(--info); font-size: 0.9rem;">
+            NULLHOUND Security Auditor &bull; Strictly for Educational Purposes &bull; Made By Hercules
+        </footer>
     </div>
 </body>
 </html>

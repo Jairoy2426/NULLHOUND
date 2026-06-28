@@ -64,7 +64,8 @@ def print_banner(console: Console, meta: Dict[str, str], quiet: bool) -> None:
         f"{'([bold red]ROOT[/bold red])' if is_root() else '([bold yellow]Non-Root[/bold yellow])'}\n"
         f"[bold white]Host:[/bold white] [cyan]{meta['hostname']}[/cyan] | "
         f"[bold white]Kernel:[/bold white] [cyan]{meta['kernel']}[/cyan]\n"
-        f"[bold white]Scan Started:[/bold white] [dim white]{meta['timestamp']}[/dim white]"
+        f"[bold white]Scan Started:[/bold white] [dim white]{meta['timestamp']}[/dim white] | "
+        f"[bold green]Made By Hercules[/bold green]"
     )
 
     console.print(Align.center(f"[bold blue]{banner_text}[/bold blue]"))

@@ -302,7 +302,7 @@
                 </div>
                 <div class="meta-item">
                     <strong>Scan Time</strong>
-                    <span>2026-06-28 13:45:27 IST</span>
+                    <span>2026-06-28 14:02:26 IST</span>
                 </div>
                 <div class="meta-item">
                     <strong>Scanner Version</strong>
@@ -319,11 +319,11 @@
             <div class="card">
                 <div class="stats-grid">
                     <div class="stat-box" style="border-top: 4px solid var(--critical)">
-                        <span class="stat-count" style="color: var(--critical)">1</span>
+                        <span class="stat-count" style="color: var(--critical)">2</span>
                         <span class="stat-label">Critical</span>
                     </div>
                     <div class="stat-box" style="border-top: 4px solid var(--high)">
-                        <span class="stat-count" style="color: var(--high)">4</span>
+                        <span class="stat-count" style="color: var(--high)">3</span>
                         <span class="stat-label">High</span>
                     </div>
                     <div class="stat-box" style="border-top: 4px solid var(--medium)">
@@ -331,7 +331,7 @@
                         <span class="stat-label">Medium</span>
                     </div>
                     <div class="stat-box" style="border-top: 4px solid var(--low)">
-                        <span class="stat-count" style="color: var(--low)">7</span>
+                        <span class="stat-count" style="color: var(--low)">6</span>
                         <span class="stat-label">Low</span>
                     </div>
                     <div class="stat-box" style="border-top: 4px solid var(--info)">
@@ -354,7 +354,7 @@
 
         <div class="findings-section">
             <div class="findings-title">
-                <span>Vulnerabilities & Findings (32)</span>
+                <span>Vulnerabilities & Findings (31)</span>
             </div>
             
             <div class="finding-card border-medium">
@@ -372,6 +372,166 @@
                         <pre><code>User: postgres, Shell: /bin/bash</code></pre>
                     </div>
                     <p class="remediation"><strong>Remediation:</strong> Change the user shell to a non-interactive shell: usermod -s /usr/sbin/nologin postgres</p>
+                    <p><strong>References:</strong> <a href="https://www.cisecurity.org/benchmark/ubuntu_linux" target="_blank">https://www.cisecurity.org/benchmark/ubuntu_linux</a> </p>
+                </div>
+            </div>
+            
+
+            <div class="finding-card border-high">
+                <summary class="finding-header">
+                    <span class="badge badge-high">HIGH</span>
+                    <span class="badge badge-compliance">PCI-DSS v4.0 2.2.3</span><span class="badge badge-compliance">ISO27001:2022 A.8.12</span><span class="badge badge-compliance">CIS-Control 5</span>
+                    <span class="finding-id">AEG-OS-001</span>
+                    <span class="finding-title">Scanner run without root privileges</span>
+                    <span class="finding-module">OS</span>
+                </summary>
+                <div class="finding-details">
+                    <p><strong>Description:</strong> The scanner is executed as a non-root user. Many system audits, configuration reviews, and security checks will fail or return incomplete results due to permission restrictions.</p>
+                    <div class="code-block">
+                        <strong>Evidence:</strong>
+                        <pre><code>Running as UID 1000</code></pre>
+                    </div>
+                    <p class="remediation"><strong>Remediation:</strong> Run the vulnerability scanner with root privileges: sudo python3 nullhound.py</p>
+                    <p><strong>References:</strong> <a href="https://github.com/nullhound-scanner/nullhound" target="_blank">https://github.com/nullhound-scanner/nullhound</a> </p>
+                </div>
+            </div>
+            
+
+            <div class="finding-card border-medium">
+                <summary class="finding-header">
+                    <span class="badge badge-medium">MEDIUM</span>
+                    
+                    <span class="finding-id">AEG-KERN-KERNEL-DMESG_RESTRICT</span>
+                    <span class="finding-title">Insecure kernel setting: kernel.dmesg_restrict</span>
+                    <span class="finding-module">KERNEL</span>
+                </summary>
+                <div class="finding-details">
+                    <p><strong>Description:</strong> Unprivileged users can view kernel syslog messages (dmesg). This can leak kernel addresses or memory contents useful for local kernel exploits.</p>
+                    <div class="code-block">
+                        <strong>Evidence:</strong>
+                        <pre><code>kernel.dmesg_restrict = 0 (Expected: == 1)</code></pre>
+                    </div>
+                    <p class="remediation"><strong>Remediation:</strong> Add or update the setting in /etc/sysctl.conf: kernel.dmesg_restrict = 1, then load it: sudo sysctl -p</p>
+                    <p><strong>References:</strong> <a href="https://www.cisecurity.org/benchmark/ubuntu_linux" target="_blank">https://www.cisecurity.org/benchmark/ubuntu_linux</a> </p>
+                </div>
+            </div>
+            
+
+            <div class="finding-card border-medium">
+                <summary class="finding-header">
+                    <span class="badge badge-medium">MEDIUM</span>
+                    
+                    <span class="finding-id">AEG-KERN-KERNEL-KPTR_RESTRICT</span>
+                    <span class="finding-title">Insecure kernel setting: kernel.kptr_restrict</span>
+                    <span class="finding-module">KERNEL</span>
+                </summary>
+                <div class="finding-details">
+                    <p><strong>Description:</strong> Kernel pointer addresses are exposed to unprivileged users, defeating kernel ASLR.</p>
+                    <div class="code-block">
+                        <strong>Evidence:</strong>
+                        <pre><code>kernel.kptr_restrict = 0 (Expected: == 2)</code></pre>
+                    </div>
+                    <p class="remediation"><strong>Remediation:</strong> Add or update the setting in /etc/sysctl.conf: kernel.kptr_restrict = 2, then load it: sudo sysctl -p</p>
+                    <p><strong>References:</strong> <a href="https://www.cisecurity.org/benchmark/ubuntu_linux" target="_blank">https://www.cisecurity.org/benchmark/ubuntu_linux</a> </p>
+                </div>
+            </div>
+            
+
+            <div class="finding-card border-high">
+                <summary class="finding-header">
+                    <span class="badge badge-high">HIGH</span>
+                    
+                    <span class="finding-id">AEG-KERN-KERNEL-YAMA-PTRACE_SCOPE</span>
+                    <span class="finding-title">Insecure kernel setting: kernel.yama.ptrace_scope</span>
+                    <span class="finding-module">KERNEL</span>
+                </summary>
+                <div class="finding-details">
+                    <p><strong>Description:</strong> Yama ptrace scope is set to unrestricted, allowing process memory reading/injection between users, enabling process hijacking.</p>
+                    <div class="code-block">
+                        <strong>Evidence:</strong>
+                        <pre><code>kernel.yama.ptrace_scope = 0 (Expected: &gt;= 1)</code></pre>
+                    </div>
+                    <p class="remediation"><strong>Remediation:</strong> Add or update the setting in /etc/sysctl.conf: kernel.yama.ptrace_scope = 1, then load it: sudo sysctl -p</p>
+                    <p><strong>References:</strong> <a href="https://www.cisecurity.org/benchmark/ubuntu_linux" target="_blank">https://www.cisecurity.org/benchmark/ubuntu_linux</a> </p>
+                </div>
+            </div>
+            
+
+            <div class="finding-card border-medium">
+                <summary class="finding-header">
+                    <span class="badge badge-medium">MEDIUM</span>
+                    
+                    <span class="finding-id">AEG-KERN-NET-IPV4-CONF-ALL-RP_FILTER</span>
+                    <span class="finding-title">Insecure kernel setting: net.ipv4.conf.all.rp_filter</span>
+                    <span class="finding-module">KERNEL</span>
+                </summary>
+                <div class="finding-details">
+                    <p><strong>Description:</strong> Reverse Path Filtering is disabled, making the system vulnerable to IP address spoofing attacks.</p>
+                    <div class="code-block">
+                        <strong>Evidence:</strong>
+                        <pre><code>net.ipv4.conf.all.rp_filter = 0 (Expected: == 1)</code></pre>
+                    </div>
+                    <p class="remediation"><strong>Remediation:</strong> Add or update the setting in /etc/sysctl.conf: net.ipv4.conf.all.rp_filter = 1, then load it: sudo sysctl -p</p>
+                    <p><strong>References:</strong> <a href="https://www.cisecurity.org/benchmark/ubuntu_linux" target="_blank">https://www.cisecurity.org/benchmark/ubuntu_linux</a> </p>
+                </div>
+            </div>
+            
+
+            <div class="finding-card border-low">
+                <summary class="finding-header">
+                    <span class="badge badge-low">LOW</span>
+                    
+                    <span class="finding-id">AEG-KERN-NET-IPV4-CONF-ALL-ACCEPT_REDIRECTS</span>
+                    <span class="finding-title">Insecure kernel setting: net.ipv4.conf.all.accept_redirects</span>
+                    <span class="finding-module">KERNEL</span>
+                </summary>
+                <div class="finding-details">
+                    <p><strong>Description:</strong> System accepts ICMP redirect messages, allowing attackers to route traffic via malicious routes.</p>
+                    <div class="code-block">
+                        <strong>Evidence:</strong>
+                        <pre><code>net.ipv4.conf.all.accept_redirects = 1 (Expected: == 0)</code></pre>
+                    </div>
+                    <p class="remediation"><strong>Remediation:</strong> Add or update the setting in /etc/sysctl.conf: net.ipv4.conf.all.accept_redirects = 0, then load it: sudo sysctl -p</p>
+                    <p><strong>References:</strong> <a href="https://www.cisecurity.org/benchmark/ubuntu_linux" target="_blank">https://www.cisecurity.org/benchmark/ubuntu_linux</a> </p>
+                </div>
+            </div>
+            
+
+            <div class="finding-card border-low">
+                <summary class="finding-header">
+                    <span class="badge badge-low">LOW</span>
+                    
+                    <span class="finding-id">AEG-KERN-NET-IPV6-CONF-ALL-ACCEPT_REDIRECTS</span>
+                    <span class="finding-title">Insecure kernel setting: net.ipv6.conf.all.accept_redirects</span>
+                    <span class="finding-module">KERNEL</span>
+                </summary>
+                <div class="finding-details">
+                    <p><strong>Description:</strong> IPv6 system accepts ICMP redirect messages, allowing routing redirection attacks.</p>
+                    <div class="code-block">
+                        <strong>Evidence:</strong>
+                        <pre><code>net.ipv6.conf.all.accept_redirects = 1 (Expected: == 0)</code></pre>
+                    </div>
+                    <p class="remediation"><strong>Remediation:</strong> Add or update the setting in /etc/sysctl.conf: net.ipv6.conf.all.accept_redirects = 0, then load it: sudo sysctl -p</p>
+                    <p><strong>References:</strong> <a href="https://www.cisecurity.org/benchmark/ubuntu_linux" target="_blank">https://www.cisecurity.org/benchmark/ubuntu_linux</a> </p>
+                </div>
+            </div>
+            
+
+            <div class="finding-card border-low">
+                <summary class="finding-header">
+                    <span class="badge badge-low">LOW</span>
+                    
+                    <span class="finding-id">AEG-KERN-NET-IPV4-CONF-ALL-SEND_REDIRECTS</span>
+                    <span class="finding-title">Insecure kernel setting: net.ipv4.conf.all.send_redirects</span>
+                    <span class="finding-module">KERNEL</span>
+                </summary>
+                <div class="finding-details">
+                    <p><strong>Description:</strong> System sends ICMP redirect messages. Hosts should only send redirects if they act as gateway routers.</p>
+                    <div class="code-block">
+                        <strong>Evidence:</strong>
+                        <pre><code>net.ipv4.conf.all.send_redirects = 1 (Expected: == 0)</code></pre>
+                    </div>
+                    <p class="remediation"><strong>Remediation:</strong> Add or update the setting in /etc/sysctl.conf: net.ipv4.conf.all.send_redirects = 0, then load it: sudo sysctl -p</p>
                     <p><strong>References:</strong> <a href="https://www.cisecurity.org/benchmark/ubuntu_linux" target="_blank">https://www.cisecurity.org/benchmark/ubuntu_linux</a> </p>
                 </div>
             </div>
@@ -677,166 +837,6 @@
             </div>
             
 
-            <div class="finding-card border-medium">
-                <summary class="finding-header">
-                    <span class="badge badge-medium">MEDIUM</span>
-                    
-                    <span class="finding-id">AEG-KERN-KERNEL-DMESG_RESTRICT</span>
-                    <span class="finding-title">Insecure kernel setting: kernel.dmesg_restrict</span>
-                    <span class="finding-module">KERNEL</span>
-                </summary>
-                <div class="finding-details">
-                    <p><strong>Description:</strong> Unprivileged users can view kernel syslog messages (dmesg). This can leak kernel addresses or memory contents useful for local kernel exploits.</p>
-                    <div class="code-block">
-                        <strong>Evidence:</strong>
-                        <pre><code>kernel.dmesg_restrict = 0 (Expected: == 1)</code></pre>
-                    </div>
-                    <p class="remediation"><strong>Remediation:</strong> Add or update the setting in /etc/sysctl.conf: kernel.dmesg_restrict = 1, then load it: sudo sysctl -p</p>
-                    <p><strong>References:</strong> <a href="https://www.cisecurity.org/benchmark/ubuntu_linux" target="_blank">https://www.cisecurity.org/benchmark/ubuntu_linux</a> </p>
-                </div>
-            </div>
-            
-
-            <div class="finding-card border-medium">
-                <summary class="finding-header">
-                    <span class="badge badge-medium">MEDIUM</span>
-                    
-                    <span class="finding-id">AEG-KERN-KERNEL-KPTR_RESTRICT</span>
-                    <span class="finding-title">Insecure kernel setting: kernel.kptr_restrict</span>
-                    <span class="finding-module">KERNEL</span>
-                </summary>
-                <div class="finding-details">
-                    <p><strong>Description:</strong> Kernel pointer addresses are exposed to unprivileged users, defeating kernel ASLR.</p>
-                    <div class="code-block">
-                        <strong>Evidence:</strong>
-                        <pre><code>kernel.kptr_restrict = 0 (Expected: == 2)</code></pre>
-                    </div>
-                    <p class="remediation"><strong>Remediation:</strong> Add or update the setting in /etc/sysctl.conf: kernel.kptr_restrict = 2, then load it: sudo sysctl -p</p>
-                    <p><strong>References:</strong> <a href="https://www.cisecurity.org/benchmark/ubuntu_linux" target="_blank">https://www.cisecurity.org/benchmark/ubuntu_linux</a> </p>
-                </div>
-            </div>
-            
-
-            <div class="finding-card border-high">
-                <summary class="finding-header">
-                    <span class="badge badge-high">HIGH</span>
-                    
-                    <span class="finding-id">AEG-KERN-KERNEL-YAMA-PTRACE_SCOPE</span>
-                    <span class="finding-title">Insecure kernel setting: kernel.yama.ptrace_scope</span>
-                    <span class="finding-module">KERNEL</span>
-                </summary>
-                <div class="finding-details">
-                    <p><strong>Description:</strong> Yama ptrace scope is set to unrestricted, allowing process memory reading/injection between users, enabling process hijacking.</p>
-                    <div class="code-block">
-                        <strong>Evidence:</strong>
-                        <pre><code>kernel.yama.ptrace_scope = 0 (Expected: &gt;= 1)</code></pre>
-                    </div>
-                    <p class="remediation"><strong>Remediation:</strong> Add or update the setting in /etc/sysctl.conf: kernel.yama.ptrace_scope = 1, then load it: sudo sysctl -p</p>
-                    <p><strong>References:</strong> <a href="https://www.cisecurity.org/benchmark/ubuntu_linux" target="_blank">https://www.cisecurity.org/benchmark/ubuntu_linux</a> </p>
-                </div>
-            </div>
-            
-
-            <div class="finding-card border-medium">
-                <summary class="finding-header">
-                    <span class="badge badge-medium">MEDIUM</span>
-                    
-                    <span class="finding-id">AEG-KERN-NET-IPV4-CONF-ALL-RP_FILTER</span>
-                    <span class="finding-title">Insecure kernel setting: net.ipv4.conf.all.rp_filter</span>
-                    <span class="finding-module">KERNEL</span>
-                </summary>
-                <div class="finding-details">
-                    <p><strong>Description:</strong> Reverse Path Filtering is disabled, making the system vulnerable to IP address spoofing attacks.</p>
-                    <div class="code-block">
-                        <strong>Evidence:</strong>
-                        <pre><code>net.ipv4.conf.all.rp_filter = 0 (Expected: == 1)</code></pre>
-                    </div>
-                    <p class="remediation"><strong>Remediation:</strong> Add or update the setting in /etc/sysctl.conf: net.ipv4.conf.all.rp_filter = 1, then load it: sudo sysctl -p</p>
-                    <p><strong>References:</strong> <a href="https://www.cisecurity.org/benchmark/ubuntu_linux" target="_blank">https://www.cisecurity.org/benchmark/ubuntu_linux</a> </p>
-                </div>
-            </div>
-            
-
-            <div class="finding-card border-low">
-                <summary class="finding-header">
-                    <span class="badge badge-low">LOW</span>
-                    
-                    <span class="finding-id">AEG-KERN-NET-IPV4-CONF-ALL-ACCEPT_REDIRECTS</span>
-                    <span class="finding-title">Insecure kernel setting: net.ipv4.conf.all.accept_redirects</span>
-                    <span class="finding-module">KERNEL</span>
-                </summary>
-                <div class="finding-details">
-                    <p><strong>Description:</strong> System accepts ICMP redirect messages, allowing attackers to route traffic via malicious routes.</p>
-                    <div class="code-block">
-                        <strong>Evidence:</strong>
-                        <pre><code>net.ipv4.conf.all.accept_redirects = 1 (Expected: == 0)</code></pre>
-                    </div>
-                    <p class="remediation"><strong>Remediation:</strong> Add or update the setting in /etc/sysctl.conf: net.ipv4.conf.all.accept_redirects = 0, then load it: sudo sysctl -p</p>
-                    <p><strong>References:</strong> <a href="https://www.cisecurity.org/benchmark/ubuntu_linux" target="_blank">https://www.cisecurity.org/benchmark/ubuntu_linux</a> </p>
-                </div>
-            </div>
-            
-
-            <div class="finding-card border-low">
-                <summary class="finding-header">
-                    <span class="badge badge-low">LOW</span>
-                    
-                    <span class="finding-id">AEG-KERN-NET-IPV6-CONF-ALL-ACCEPT_REDIRECTS</span>
-                    <span class="finding-title">Insecure kernel setting: net.ipv6.conf.all.accept_redirects</span>
-                    <span class="finding-module">KERNEL</span>
-                </summary>
-                <div class="finding-details">
-                    <p><strong>Description:</strong> IPv6 system accepts ICMP redirect messages, allowing routing redirection attacks.</p>
-                    <div class="code-block">
-                        <strong>Evidence:</strong>
-                        <pre><code>net.ipv6.conf.all.accept_redirects = 1 (Expected: == 0)</code></pre>
-                    </div>
-                    <p class="remediation"><strong>Remediation:</strong> Add or update the setting in /etc/sysctl.conf: net.ipv6.conf.all.accept_redirects = 0, then load it: sudo sysctl -p</p>
-                    <p><strong>References:</strong> <a href="https://www.cisecurity.org/benchmark/ubuntu_linux" target="_blank">https://www.cisecurity.org/benchmark/ubuntu_linux</a> </p>
-                </div>
-            </div>
-            
-
-            <div class="finding-card border-low">
-                <summary class="finding-header">
-                    <span class="badge badge-low">LOW</span>
-                    
-                    <span class="finding-id">AEG-KERN-NET-IPV4-CONF-ALL-SEND_REDIRECTS</span>
-                    <span class="finding-title">Insecure kernel setting: net.ipv4.conf.all.send_redirects</span>
-                    <span class="finding-module">KERNEL</span>
-                </summary>
-                <div class="finding-details">
-                    <p><strong>Description:</strong> System sends ICMP redirect messages. Hosts should only send redirects if they act as gateway routers.</p>
-                    <div class="code-block">
-                        <strong>Evidence:</strong>
-                        <pre><code>net.ipv4.conf.all.send_redirects = 1 (Expected: == 0)</code></pre>
-                    </div>
-                    <p class="remediation"><strong>Remediation:</strong> Add or update the setting in /etc/sysctl.conf: net.ipv4.conf.all.send_redirects = 0, then load it: sudo sysctl -p</p>
-                    <p><strong>References:</strong> <a href="https://www.cisecurity.org/benchmark/ubuntu_linux" target="_blank">https://www.cisecurity.org/benchmark/ubuntu_linux</a> </p>
-                </div>
-            </div>
-            
-
-            <div class="finding-card border-high">
-                <summary class="finding-header">
-                    <span class="badge badge-high">HIGH</span>
-                    <span class="badge badge-compliance">PCI-DSS v4.0 2.2.3</span><span class="badge badge-compliance">ISO27001:2022 A.8.12</span><span class="badge badge-compliance">CIS-Control 5</span>
-                    <span class="finding-id">AEG-OS-001</span>
-                    <span class="finding-title">Scanner run without root privileges</span>
-                    <span class="finding-module">OS</span>
-                </summary>
-                <div class="finding-details">
-                    <p><strong>Description:</strong> The scanner is executed as a non-root user. Many system audits, configuration reviews, and security checks will fail or return incomplete results due to permission restrictions.</p>
-                    <div class="code-block">
-                        <strong>Evidence:</strong>
-                        <pre><code>Running as UID 1000</code></pre>
-                    </div>
-                    <p class="remediation"><strong>Remediation:</strong> Run the vulnerability scanner with root privileges: sudo python3 nullhound.py</p>
-                    <p><strong>References:</strong> <a href="https://github.com/nullhound-scanner/nullhound" target="_blank">https://github.com/nullhound-scanner/nullhound</a> </p>
-                </div>
-            </div>
-            
-
             <div class="finding-card border-low">
                 <summary class="finding-header">
                     <span class="badge badge-low">LOW</span>
@@ -872,6 +872,26 @@
                         <pre><code>sshd_config: ClientAliveInterval is missing or 0</code></pre>
                     </div>
                     <p class="remediation"><strong>Remediation:</strong> Configure 'ClientAliveInterval 300' and 'ClientAliveCountMax 3' in sshd_config.</p>
+                    <p><strong>References:</strong> <a href="https://www.cisecurity.org/benchmark/ubuntu_linux" target="_blank">https://www.cisecurity.org/benchmark/ubuntu_linux</a> </p>
+                </div>
+            </div>
+            
+
+            <div class="finding-card border-critical">
+                <summary class="finding-header">
+                    <span class="badge badge-critical">CRITICAL</span>
+                    <span class="badge badge-compliance">PCI-DSS v4.0 1.2.1</span><span class="badge badge-compliance">ISO27001:2022 A.8.20</span><span class="badge badge-compliance">CIS-Control 4.4</span>
+                    <span class="finding-id">AEG-FW-001</span>
+                    <span class="finding-title">No active firewall detected</span>
+                    <span class="finding-module">FIREWALL</span>
+                </summary>
+                <div class="finding-details">
+                    <p><strong>Description:</strong> The system does not have an active firewall configuration (UFW, Firewalld, iptables, or nftables). An unprotected system exposes all running network services directly to the network, increasing the risk of unauthorized access.</p>
+                    <div class="code-block">
+                        <strong>Evidence:</strong>
+                        <pre><code>No active firewall rules or processes running.</code></pre>
+                    </div>
+                    <p class="remediation"><strong>Remediation:</strong> Install and enable a firewall management utility: 'sudo apt install ufw && sudo ufw enable' or 'sudo dnf install firewalld && sudo systemctl enable --now firewalld'.</p>
                     <p><strong>References:</strong> <a href="https://www.cisecurity.org/benchmark/ubuntu_linux" target="_blank">https://www.cisecurity.org/benchmark/ubuntu_linux</a> </p>
                 </div>
             </div>
@@ -1013,49 +1033,10 @@
                 </div>
             </div>
             
-
-            <div class="finding-card border-low">
-                <summary class="finding-header">
-                    <span class="badge badge-low">LOW</span>
-                    
-                    <span class="finding-id">AEG-PKG-002</span>
-                    <span class="finding-title">Third-party package repositories configured</span>
-                    <span class="finding-module">PACKAGES</span>
-                </summary>
-                <div class="finding-details">
-                    <p><strong>Description:</strong> The system configures third-party repositories or PPAs. Software installed from these repositories bypasses the core distribution's security vetting, exposing the system to supply chain attacks.</p>
-                    <div class="code-block">
-                        <strong>Evidence:</strong>
-                        <pre><code>antigravity.list: deb [signed-by=/etc/apt/keyrings/antigravity-repo-key.gpg] https://us-central1-a</code></pre>
-                    </div>
-                    <p class="remediation"><strong>Remediation:</strong> Audit configured software sources and remove unnecessary PPAs or external repositories.</p>
-                    <p><strong>References:</strong> None</p>
-                </div>
-            </div>
-            
-
-            <div class="finding-card border-high">
-                <summary class="finding-header">
-                    <span class="badge badge-high">HIGH</span>
-                    
-                    <span class="finding-id">AEG-PKG-004</span>
-                    <span class="finding-title">Vulnerable python pip packages detected (4 vulnerabilities)</span>
-                    <span class="finding-module">PACKAGES</span>
-                </summary>
-                <div class="finding-details">
-                    <p><strong>Description:</strong> One or more installed Python pip packages have known CVE security vulnerabilities listed in the OSV database.</p>
-                    <div class="code-block">
-                        <strong>Evidence:</strong>
-                        <pre><code>bleach (6.3.0): GHSA-8rfp-98v4-mmr6 () - No summary available
-bleach (6.3.0): GHSA-g75f-g53v-794x () - No summary available
-cryptography (46.0.7): GHSA-537c-gmf6-5ccf () - No summary available</code></pre>
-                    </div>
-                    <p class="remediation"><strong>Remediation:</strong> Upgrade vulnerable packages using 'pip install --upgrade <package_name>'.</p>
-                    <p><strong>References:</strong> <a href="https://osv.dev" target="_blank">https://osv.dev</a> </p>
-                </div>
-            </div>
-            
         </div>
+        <footer style="margin-top: 30px; padding: 20px; text-align: center; border-top: 1px solid var(--border-color); color: var(--info); font-size: 0.9rem;">
+            NULLHOUND Security Auditor &bull; Strictly for Educational Purposes &bull; Made By Hercules
+        </footer>
     </div>
 </body>
 </html>
