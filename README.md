@@ -7,10 +7,10 @@
 ## 📸 Screenshots
 
 ### Interactive Terminal Audit Interface
-![Interactive Terminal Audit](terminal_screenshot.webp)
+![Interactive Terminal Audit](https://img.herculesdev.in/u/JzLy2R.png)
 
 ### Self-Contained HTML Security Report Dashboard
-![HTML Security Report Dashboard](report_screenshot.webp)
+![HTML Security Report Dashboard](https://img.herculesdev.in/u/3i0b0d.png)
 
 ---
 
