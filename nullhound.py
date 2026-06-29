@@ -25,7 +25,7 @@ from core.utils import get_severity_color, is_root, run_cmd, has_binary
 from modules import ALL_MODULES
 
 # Versioning
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 
 def get_system_metadata() -> Dict[str, str]:
     """Retrieves basic system metadata for banner and reports."""
