@@ -17,7 +17,7 @@ I built **NULLHOUND** to address the need for a fast, parallelized, and human-re
 
 ## 🎬 Live Demo
 
-<img src="docs/screenshots/nullhound_demo.gif" width="700" alt="NULLHOUND Demo">
+<video src="docs/screenshots/nullhound_demo.mp4" width="700" controls autoplay loop muted></video>
 
 ---
 
