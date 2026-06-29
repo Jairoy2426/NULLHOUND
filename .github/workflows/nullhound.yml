@@ -1,0 +1,60 @@
+# NULLHOUND CI/CD Security Audit Workflow
+# This workflow automatically runs NULLHOUND security scanner in your CI pipeline.
+# It runs with sudo on standard Ubuntu runners, exports a beautiful HTML report, 
+# and uploads the report as an artifact.
+
+name: NULLHOUND System Security Audit
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+  schedule:
+    # Run weekly on Sundays at midnight to audit the baseline runner OS
+    - cron: '0 0 * * 0'
+  workflow_dispatch:
+    # Allows manual triggering from the Actions UI
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: Run System Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          # Install the package itself in editable mode if needed
+          pip install -e .
+
+      - name: Execute NULLHOUND Security Audit
+        run: |
+          # Runs standard audit and maps findings to CIS Benchmarks
+          sudo python nullhound.py --profile standard --compliance cis --output nullhound-audit-report.html
+
+      - name: Upload HTML Audit Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: nullhound-audit-report
+          path: nullhound-audit-report.html
+          retention-days: 14
+
+      - name: Optional: Run Package CVE Checker
+        run: |
+          # Perform the real-time CVE check and save a separate JSON/TXT report if desired
+          sudo python nullhound.py --cve-check --output package-cve-report.json
+        continue-on-error: true # Do not fail the workflow if package vulnerabilities are found

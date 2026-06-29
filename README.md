@@ -17,8 +17,14 @@ I built **NULLHOUND** to address the need for a fast, parallelized, and human-re
 
 ## 📸 Screenshots
 
-### Interactive Terminal Audit Interface
-![Interactive Terminal Audit](docs/screenshots/terminal_audit.png)
+### Parallelized Terminal Audit Scan
+![Parallelized Terminal Audit](docs/screenshots/terminal_audit.png)
+
+### CIS Benchmark Compliance Audit
+![CIS Compliance Audit](docs/screenshots/compliance_report.png)
+
+### Real-Time Package CVE Lookup Engine
+![Package CVE Lookup](docs/screenshots/cve_check.png)
 
 ### Self-Contained HTML Security Report Dashboard
 ![HTML Security Report Dashboard](docs/screenshots/html_report.png)
@@ -32,6 +38,9 @@ I built **NULLHOUND** to address the need for a fast, parallelized, and human-re
 *   **Robust & Exception Safe**: Handles missing binaries, permission denied errors, and timeouts without crashing.
 *   **Flexible Reporting**: Generates reports in structured **JSON**, plain readable **TXT**, and premium self-contained **HTML** dashboards (with built-in dark mode).
 *   **Check Profiles**: Run `quick`, `standard`, or `deep` sweeps controlling check depth and timeouts.
+*   **CIS Compliance Mode (`--compliance cis`)**: Maps audit findings to Center for Internet Security (CIS) controls, printing high-fidelity compliance matrices.
+*   **Real-Time Package CVE Lookup (`--cve-check`)**: Automatically scans local packages and queries OSV & NVD APIs in real-time to detect vulnerability CVEs.
+*   **CI/CD Pipeline Ready**: Includes a predefined GitHub Actions workflow file to run automated security audits and build reports inside standard runner VMs.
 
 ---
 
@@ -95,6 +104,24 @@ sudo ./nullhound.py --output report.json
 Quietly run a deep profile scan, filtering out anything below HIGH severity, disabled color codes, and redirect output to a file:
 ```bash
 sudo ./nullhound.py --profile deep --severity high --quiet --no-color > audit_output.txt
+```
+
+### 5. CIS Compliance Audit
+Run the system audits and map findings to CIS Benchmark controls directly:
+```bash
+sudo ./nullhound.py --compliance cis
+```
+
+### 6. Real-Time Package CVE Verification
+Query OSV and NVD live for vulnerable versions of installed packages:
+```bash
+sudo ./nullhound.py --cve-check
+```
+
+### 7. Run compliance audit with auto-pause on Windows/WSL Terminals
+Ensure that the console stays open at completion:
+```bash
+python3 nullhound.py --compliance cis --pause
 ```
 
 ---

@@ -34,6 +34,26 @@ class ReportReporter:
             },
             "findings": [f.to_dict() for f in self.findings]
         }
+        if self.meta.get("compliance") == "cis":
+            from core.finding import CIS_BENCHMARKS
+            passed = []
+            failed = []
+            for cid in sorted(CIS_BENCHMARKS.keys()):
+                triggered = [f.id for f in self.findings if cid in f.compliance]
+                if triggered:
+                    failed.append({"control": cid, "description": CIS_BENCHMARKS[cid], "findings": triggered})
+                else:
+                    passed.append({"control": cid, "description": CIS_BENCHMARKS[cid]})
+            data["compliance"] = {
+                "benchmark": "CIS Linux Benchmark",
+                "summary": {
+                    "passed_count": len(passed),
+                    "failed_count": len(failed),
+                    "pass_rate": f"{(len(passed) / (len(passed) + len(failed)) * 100):.1f}%" if (len(passed) + len(failed)) > 0 else "100.0%"
+                },
+                "passed": passed,
+                "failed": failed
+            }
         with open(file_path, "w") as f:
             json.dump(data, f, indent=2)
         return file_path
@@ -50,6 +70,8 @@ class ReportReporter:
         lines.append(f"Scan Time       : {self.meta.get('timestamp')}")
         lines.append(f"Executed User   : {self.meta.get('user')}")
         lines.append(f"Profile Level   : {self.meta.get('profile')}")
+        if self.meta.get("compliance"):
+            lines.append(f"Compliance Mode : {self.meta.get('compliance').upper()}")
         lines.append("-" * 80)
         lines.append("SUMMARY STATS:")
         lines.append(f"  Overall Risk Score: {self.risk_score}/100")
@@ -83,6 +105,40 @@ class ReportReporter:
                     lines.append("-" * 40)
                 lines.append("")
 
+        if self.meta.get("compliance") == "cis":
+            from core.finding import CIS_BENCHMARKS
+            lines.append("=" * 80)
+            lines.append("                         CIS COMPLIANCE AUDIT REPORT")
+            lines.append("=" * 80)
+            
+            passed = []
+            failed = []
+            for cid in sorted(CIS_BENCHMARKS.keys()):
+                triggered = [f for f in self.findings if cid in f.compliance]
+                if triggered:
+                    failed.append((cid, triggered))
+                else:
+                    passed.append(cid)
+                    
+            lines.append(f"Passed Controls : {len(passed)}")
+            lines.append(f"Failed Controls : {len(failed)}")
+            pass_rate = (len(passed) / (len(passed) + len(failed)) * 100) if (len(passed) + len(failed)) > 0 else 100
+            lines.append(f"Pass Rate       : {pass_rate:.1f}%")
+            lines.append("-" * 80)
+            lines.append("")
+            
+            lines.append("FAILED CONTROLS:")
+            for cid, triggered in failed:
+                lines.append(f"  [FAIL] {cid}: {CIS_BENCHMARKS[cid]}")
+                for f in triggered:
+                    lines.append(f"    -> Finding: {f.id} - {f.title}")
+            lines.append("")
+            
+            lines.append("PASSED CONTROLS:")
+            for cid in passed:
+                lines.append(f"  [PASS] {cid}: {CIS_BENCHMARKS[cid]}")
+            lines.append("=" * 80)
+
         with open(file_path, "w") as f:
             f.write("\n".join(lines))
         return file_path
@@ -111,7 +167,7 @@ class ReportReporter:
                 compliance_badges = "".join([f'<span class="badge badge-compliance">{std}</span>' for std in f.compliance])
 
             row = f"""
-            <div class="finding-card border-{f.severity.lower()}">
+            <div class="finding-card border-{f.severity.lower()}" id="{f.id}">
                 <summary class="finding-header">
                     <span class="badge badge-{f.severity.lower()}">{f.severity}</span>
                     {compliance_badges}
@@ -152,6 +208,73 @@ class ReportReporter:
             hardening_color = "#f97316"
         elif hardening_score < 85:
             hardening_color = "#eab308"
+
+        # Compliance elements
+        compliance_card_html = ""
+        compliance_section_html = ""
+        
+        if self.meta.get("compliance") == "cis":
+            from core.finding import CIS_BENCHMARKS
+            passed = []
+            failed = []
+            for cid in sorted(CIS_BENCHMARKS.keys()):
+                triggered = [f for f in self.findings if cid in f.compliance]
+                if triggered:
+                    failed.append((cid, triggered))
+                else:
+                    passed.append(cid)
+            
+            pass_rate = (len(passed) / (len(passed) + len(failed)) * 100) if (len(passed) + len(failed)) > 0 else 100
+            compliance_color = "#22c55e" if pass_rate >= 80 else "#eab308" if pass_rate >= 50 else "#ef4444"
+            
+            compliance_card_html = f"""
+            <div class="card risk-gauge">
+                <span class="risk-score" style="color: {compliance_color}">{pass_rate:.1f}%</span>
+                <span class="risk-title">CIS PASS RATE</span>
+            </div>
+            """
+            
+            compliance_html_lines = []
+            compliance_html_lines.append("""
+            <div class="compliance-section card" style="margin-top: 30px;">
+                <h2 style="margin-top: 0; color: #ffffff;">📊 CIS BENCHMARK COMPLIANCE AUDIT</h2>
+                <p style="color: var(--text-dim);">Detailed evaluation of system configurations against Center for Internet Security (CIS) Controls.</p>
+                <div style="display: grid; grid-template-columns: 1fr; gap: 15px; margin-top: 20px;">
+            """)
+            
+            for cid, triggered in failed:
+                findings_links = "".join([f'<a href="#{f.id}" class="badge badge-critical" style="margin-right: 5px; text-decoration: none;">{f.id}</a>' for f in triggered])
+                compliance_html_lines.append(f"""
+                    <div style="background: #0f172a90; border-left: 5px solid var(--critical); padding: 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border-color); border-left-width: 5px;">
+                        <div>
+                            <span style="font-family: monospace; font-weight: bold; color: var(--critical); font-size: 1.1rem; margin-right: 10px;">{cid}</span>
+                            <span style="font-weight: 600; color: #ffffff;">{CIS_BENCHMARKS[cid]}</span>
+                        </div>
+                        <div style="text-align: right; min-width: 180px;">
+                            <span class="badge badge-critical">FAIL</span>
+                            <div style="margin-top: 5px; font-size: 0.8rem; color: var(--text-dim);">Triggered by: {findings_links}</div>
+                        </div>
+                    </div>
+                """)
+                
+            for cid in passed:
+                compliance_html_lines.append(f"""
+                    <div style="background: #0f172a90; border-left: 5px solid var(--pass); padding: 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border-color); border-left-width: 5px;">
+                        <div>
+                            <span style="font-family: monospace; font-weight: bold; color: var(--pass); font-size: 1.1rem; margin-right: 10px;">{cid}</span>
+                            <span style="color: var(--text-dim);">{CIS_BENCHMARKS[cid]}</span>
+                        </div>
+                        <div>
+                            <span class="badge" style="background-color: var(--pass); color: #ffffff;">PASS</span>
+                        </div>
+                    </div>
+                """)
+                
+            compliance_html_lines.append("""
+                </div>
+            </div>
+            """)
+            compliance_section_html = "\n".join(compliance_html_lines)
 
         html_content = f"""<!DOCTYPE html>
 <html lang="en">
@@ -236,7 +359,7 @@ class ReportReporter:
         /* Dashboard widgets */
         .dashboard {{
             display: grid;
-            grid-template-columns: 1.5fr 1fr 1fr;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
             gap: 25px;
             margin-bottom: 25px;
         }}
@@ -505,7 +628,10 @@ class ReportReporter:
                 <span class="risk-score" style="color: {hardening_color}">{hardening_score}</span>
                 <span class="risk-title">HARDENING INDEX</span>
             </div>
+            {compliance_card_html}
         </div>
+        
+        {compliance_section_html}
 
         <div class="findings-section">
             <div class="findings-title">
