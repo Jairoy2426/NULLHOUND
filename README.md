@@ -11,7 +11,7 @@
 **NULLHOUND** is a professional, terminal-only Linux vulnerability scanner and security configuration auditor written in Python. It is designed to perform localized checks covering system configurations, network exposures, filesystem permissions, user access patterns, kernel settings, and running services against hardening standards like the CIS Benchmarks.
 
 ### 💡 Why I Built This
-I built **NULLHOUND** to address the need for a fast, parallelized, and human-readable security auditor for Linux systems. While tools like Lynis are fantastic, I wanted to create an object-oriented Python implementation that outputs rich, beautiful terminal interfaces and modern HTML reports, making security posture assessments both comprehensive and visually accessible.
+I built **NULLHOUND** to address the need for a fast, parallelized, and human-readable security auditor for Linux systems. While tools like Lynis are fantastic, I wanted to create an object-oriented Python implementation that outputs rich, beautiful terminal interfaces and modern HTML reports, making security posture assessments both comprehensive and visually accessible and obviouslly i want to make one of my own.
 
 ---
 
